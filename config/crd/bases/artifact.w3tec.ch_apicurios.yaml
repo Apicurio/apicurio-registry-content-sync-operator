@@ -1,0 +1,138 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.4.1
+  creationTimestamp: null
+  name: apicurios.artifact.w3tec.ch
+spec:
+  group: artifact.w3tec.ch
+  names:
+    kind: Apicurio
+    listKind: ApicurioList
+    plural: apicurios
+    singular: apicurio
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Apicurio is the Schema for the apicurios API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ApicurioSpec defines the desired state of Apicurio
+            properties:
+              artifactId:
+                description: The artifact id which will be the reference point for
+                  all operations towards the Registry API
+                type: string
+              content:
+                description: The content of the artifact, for an openAPI would be
+                  json (content or externalContent is required)
+                type: string
+              contentType:
+                default: application/json
+                description: This defines the content type of the API request, mostly
+                  json but not always
+                type: string
+              description:
+                description: The description of the artifact. This will always overwrite
+                  the content description
+                type: string
+              externalContent:
+                description: The content of the artifact, provide a valid URL to the
+                  content (content or externalContent is required)
+                type: string
+              labels:
+                description: This are some arbitrary labels
+                items:
+                  type: string
+                type: array
+              name:
+                description: The name of the artifact
+                type: string
+              properties:
+                additionalProperties:
+                  type: string
+                description: And some arbitrary properties
+                type: object
+              ruleCompatibility:
+                description: This will define the compatibility rule
+                enum:
+                - BACKWARD
+                - BACKWARD_TRANSITIVE
+                - FORWARD
+                - FORWARD_TRANSITIVE
+                - FULL
+                - FULL_TRANSITIVE
+                - NONE
+                type: string
+              ruleValidity:
+                default: FULL
+                description: This will define the validity rule
+                enum:
+                - FULL
+                - SYNTAX_ONLY
+                - NONE
+                type: string
+              state:
+                default: ENABLED
+                description: The state of the artifact not tied to any version
+                enum:
+                - DELETED
+                - DEPRECATED
+                - DISABLED
+                - ENABLED
+                type: string
+              type:
+                default: OPENAPI
+                description: The type of the artifact
+                enum:
+                - AVRO
+                - PROTOBUF
+                - PROTOBUF_FD
+                - JSON
+                - KCONNECT
+                - OPENAPI
+                - ASYNCAPI
+                - GRAPHQL
+                - WSDL
+                - XSD
+                type: string
+              username:
+                description: The user which owns the artifact
+                type: string
+            required:
+            - artifactId
+            - name
+            - type
+            - username
+            type: object
+          status:
+            description: ApicurioStatus defines the observed state of Apicurio
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

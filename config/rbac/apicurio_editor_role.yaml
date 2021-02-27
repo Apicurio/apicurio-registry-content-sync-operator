@@ -1,0 +1,24 @@
+# permissions for end users to edit apicurios.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: apicurio-editor-role
+rules:
+- apiGroups:
+  - artifact.w3tec.ch
+  resources:
+  - apicurios
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - artifact.w3tec.ch
+  resources:
+  - apicurios/status
+  verbs:
+  - get

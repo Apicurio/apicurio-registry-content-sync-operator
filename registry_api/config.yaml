@@ -1,0 +1,6 @@
+output:
+  ./registry_api/registry_api.gen.go
+package: RegistryApi
+generate:
+  - types
+  - client

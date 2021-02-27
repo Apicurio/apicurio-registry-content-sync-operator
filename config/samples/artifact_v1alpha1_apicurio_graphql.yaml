@@ -1,0 +1,44 @@
+apiVersion: artifact.w3tec.ch/v1alpha1
+kind: Apicurio
+metadata:
+  name: artifact-graphql-sample
+spec:
+  artifactId: artifact-graphql-sample
+  name: swars-graphql
+  description: "super graphql"
+  type: GRAPHQL
+  username: dweber019
+  labels:
+    - graphql
+    - swars
+  properties:
+    custom1: bubu
+    custom2: lala
+  state: ENABLED
+  ruleValidity: FULL
+  ruleCompatibility: NONE
+  contentType: "application/json"
+  content: |
+    interface Character {
+      id: ID!
+      name: String!
+      friends: [Character]
+      appearsIn: [Episode]!
+    }
+
+    type Human implements Character {
+      id: ID!
+      name: String!
+      friends: [Character]
+      appearsIn: [Episode]!
+      starships: [Starship]
+      totalCredits: Int
+    }
+
+    type Droid implements Character {
+      id: ID!
+      name: String!
+      friends: [Character]
+      appearsIn: [Episode]!
+      primaryFunction: String
+    }

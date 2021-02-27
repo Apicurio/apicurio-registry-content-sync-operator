@@ -1,0 +1,31 @@
+apiVersion: artifact.w3tec.ch/v1alpha1
+kind: Apicurio
+metadata:
+  name: artifact-avro-sample
+spec:
+  artifactId: artifact-avro-sample
+  name: pets-avro
+  description: "super pets avro"
+  type: AVRO
+  username: dweber019
+  labels:
+    - avro
+    - kafka
+  properties:
+    custom1: bubu
+    custom2: lala
+  state: ENABLED
+  ruleValidity: FULL
+  ruleCompatibility: NONE
+  contentType: "application/json"
+  content: |
+    {"namespace": "example.avro",
+     "type": "record",
+     "name": "Pet",
+     "fields": [
+         {"name": "name", "type": "string"},
+         {"name": "holderId",  "type": ["int", "null"]},
+         {"name": "type", "type": ["string", "null"]}
+     ]
+    }
+

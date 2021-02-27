@@ -1,0 +1,43 @@
+apiVersion: artifact.w3tec.ch/v1alpha1
+kind: Apicurio
+metadata:
+  name: artifact-json-sample
+spec:
+  artifactId: artifact-json-sample
+  name: pets-json
+  description: "super pets json"
+  type: JSON
+  username: dweber019
+  labels:
+    - json
+    - kafka
+  properties:
+    custom1: bubu
+    custom2: lala
+  state: ENABLED
+  ruleValidity: FULL
+  ruleCompatibility: NONE
+  contentType: "application/json"
+  content: |
+    {
+      "$id": "https://example.com/pet.schema.json",
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Pet",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the pet"
+        },
+        "holderId": {
+          "description": "Holders id",
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of the pet e.g. cat"
+        }
+      }
+    }
+

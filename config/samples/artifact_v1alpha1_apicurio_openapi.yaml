@@ -1,0 +1,83 @@
+apiVersion: artifact.w3tec.ch/v1alpha1
+kind: Apicurio
+metadata:
+  name: artifact-openapi-sample
+spec:
+  artifactId: artifact-openapi-sample
+  name: pets-api
+  description: "super pets api"
+  type: OPENAPI
+  username: dweber019
+  labels:
+    - openapi
+    - api
+  properties:
+    custom1: bubu
+    custom2: lala
+  state: ENABLED
+  ruleValidity: FULL
+  ruleCompatibility: NONE
+  contentType: "application/json"
+  content: |
+    {
+      "openapi": "3.0.0",
+      "info": {
+        "version": "1.0.0",
+        "title": "Swagger Petstore",
+        "description": "A sample API that uses a petstore as an example to demonstrate features in the OpenAPI 3.0 specification",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+          "name": "Swagger API Team",
+          "email": "apiteam@swagger.io",
+          "url": "http://swagger.io"
+        },
+        "license": {
+          "name": "Apache 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+      },
+      "servers": [
+        {
+          "url": "http://petstore.swagger.io/api"
+        }
+      ],
+      "paths": {
+        "/pets": {
+          "get": {
+            "description": "Returns all pets from the system that the user has access to\n",
+            "operationId": "findPets",
+            "parameters": [
+              {
+                "name": "tags",
+                "in": "query",
+                "description": "tags to filter by",
+                "required": false,
+                "style": "form",
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "name": "limit",
+                "in": "query",
+                "description": "maximum number of results to return",
+                "required": false,
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "pet response"
+              }
+            }
+          }
+        }
+      }
+    }
+

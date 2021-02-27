@@ -1,0 +1,59 @@
+apiVersion: artifact.w3tec.ch/v1alpha1
+kind: Apicurio
+metadata:
+  name: artifact-asyncapi-sample
+spec:
+  artifactId: artifact-asyncapi-sample
+  name: signup-asyncapi
+  description: "super asyncapi"
+  type: ASYNCAPI
+  username: dweber019
+  labels:
+    - asyncapi
+    - kafka
+  properties:
+    custom1: bubu
+    custom2: lala
+  state: ENABLED
+  ruleValidity: FULL
+  ruleCompatibility: NONE
+  contentType: "application/json"
+  content: |
+    {
+      "asyncapi": "2.0.0",
+      "info": {
+        "title": "Account Service",
+        "version": "1.0.0",
+        "description": "This service is in charge of processing user signups"
+      },
+      "channels": {
+        "user/signedup": {
+          "subscribe": {
+            "message": {
+              "$ref": "#/components/messages/UserSignedUp"
+            }
+          }
+        }
+      },
+      "components": {
+        "messages": {
+          "UserSignedUp": {
+            "payload": {
+              "type": "object",
+              "properties": {
+                "displayName": {
+                  "type": "string",
+                  "description": "Name of the user"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "description": "Email of the user"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
