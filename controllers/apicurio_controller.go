@@ -40,9 +40,9 @@ type ApicurioReconciler struct {
 	ApicurioClient RegistryApi.ClientWithResponses
 }
 
-// +kubebuilder:rbac:groups=artifact.w3tec.ch,resources=apicurios,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=artifact.w3tec.ch,resources=apicurios/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=artifact.w3tec.ch,resources=apicurios/finalizers,verbs=update
+// +kubebuilder:rbac:groups=artifact.apicurio.io,resources=apicurios,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=artifact.apicurio.io,resources=apicurios/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=artifact.apicurio.io,resources=apicurios/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

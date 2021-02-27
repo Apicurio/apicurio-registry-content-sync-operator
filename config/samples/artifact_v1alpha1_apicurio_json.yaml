@@ -1,4 +1,4 @@
-apiVersion: artifact.w3tec.ch/v1alpha1
+apiVersion: artifact.apicurio.io/v1alpha1
 kind: Apicurio
 metadata:
   name: artifact-json-sample

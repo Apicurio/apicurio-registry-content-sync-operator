@@ -59,11 +59,11 @@ Don't use this in production!!! Use something like the [Registry operator](https
 ## Deployment
 To update the docker image use this command
 ```
-make docker-build docker-push IMG=docker.io/dweber019/apicurio-registry-artifact-operator:v0.0.1
+make docker-build docker-push IMG=docker.io/apicurio/apicurio-registry-content-sync-operator:v0.0.1
 ```
 After this you can run with
 ```
-make deploy IMG=docker.io/dweber019/apicurio-registry-artifact-operator:v0.0.1
+make deploy IMG=docker.io/apicurio/apicurio-registry-content-sync-operator:v0.0.1
 ```
 Don't forget to set env `APICURIO_ENDPOINT`.
 

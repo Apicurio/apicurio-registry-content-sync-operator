@@ -80,7 +80,7 @@ func main() {
 		MetricsBindAddress: metricsAddr,
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
-		LeaderElectionID:   "446af786.w3tec.ch",
+		LeaderElectionID:   "446af786.apicurio.io",
 		Namespace:          watchNamespace, // namespaced-scope when the value is not an empty string
 	}
 

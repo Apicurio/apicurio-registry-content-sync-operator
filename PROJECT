@@ -1,7 +1,7 @@
-domain: w3tec.ch
+domain: apicurio.io
 layout: go.kubebuilder.io/v3
-projectName: apicurio-artifact-operator
-repo: github.com/dweber019/apicurio-artifact-operator
+projectName: apicurio-registry-content-sync-operator
+repo: github.com/apicurio/apicurio-registry-content-sync-operator
 resources:
 - crdVersion: v1
   group: artifact

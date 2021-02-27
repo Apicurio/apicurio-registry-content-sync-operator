@@ -5,7 +5,7 @@ metadata:
   name: apicurio-viewer-role
 rules:
 - apiGroups:
-  - artifact.w3tec.ch
+  - artifact.apicurio.io
   resources:
   - apicurios
   verbs:
@@ -13,7 +13,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - artifact.w3tec.ch
+  - artifact.apicurio.io
   resources:
   - apicurios/status
   verbs:

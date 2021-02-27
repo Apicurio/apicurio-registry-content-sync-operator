@@ -6,9 +6,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: apicurios.artifact.w3tec.ch
+  name: apicurios.artifact.apicurio.io
 spec:
-  group: artifact.w3tec.ch
+  group: artifact.apicurio.io
   names:
     kind: Apicurio
     listKind: ApicurioList

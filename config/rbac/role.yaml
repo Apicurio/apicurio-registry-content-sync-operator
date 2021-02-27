@@ -7,7 +7,7 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - artifact.w3tec.ch
+  - artifact.apicurio.io
   resources:
   - apicurios
   verbs:
@@ -19,13 +19,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - artifact.w3tec.ch
+  - artifact.apicurio.io
   resources:
   - apicurios/finalizers
   verbs:
   - update
 - apiGroups:
-  - artifact.w3tec.ch
+  - artifact.apicurio.io
   resources:
   - apicurios/status
   verbs:
