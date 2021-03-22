@@ -1,0 +1,40 @@
+apiVersion: apicur.io/v1alpha1
+kind: Artifact
+metadata:
+  name: artifact-json-sample
+spec:
+  groupId: testgroup
+  artifactId: artifact-json-sample
+  name: pets-json
+  description: "super pets json"
+  type: JSON
+  labels:
+    - json
+    - kafka
+  properties:
+    custom1: bubu
+    custom2: lala
+  state: ENABLED
+  content: |
+    {
+      "$id": "https://example.com/pet.schema.json",
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Pet",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the pet"
+        },
+        "holderId": {
+          "description": "Holders id",
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of the pet e.g. cat"
+        }
+      }
+    }
+

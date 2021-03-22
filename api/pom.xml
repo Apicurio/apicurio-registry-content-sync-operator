@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+    <groupId>io.apicurio</groupId>
+    <artifactId>kube-sync</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <artifactId>kube-sync-api</artifactId>
+
+  <dependencies>
+
+    <dependency>
+        <groupId>io.apicurio</groupId>
+        <artifactId>apicurio-registry-client</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-kubernetes-client</artifactId>
+    </dependency>
+    
+    <!-- optional to avoid conflicts with quarkus-kubernetes -->
+    <dependency>
+        <groupId>io.dekorate</groupId>
+        <artifactId>crd-annotations</artifactId>
+        <optional>true</optional> 
+    </dependency>
+
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+        <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>${compiler-plugin.version}</version>
+        </plugin>
+        <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>${surefire-plugin.version}</version>
+        </plugin>
+        <plugin>
+            <groupId>org.jboss.jandex</groupId>
+            <artifactId>jandex-maven-plugin</artifactId>
+            <version>${jandex-plugin.version}</version>
+            <executions>
+                <execution>
+                    <id>make-index</id>
+                    <goals>
+                        <goal>jandex</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+  </build>
+
+</project>

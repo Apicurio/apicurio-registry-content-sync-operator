@@ -1,0 +1,163 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apicurio-registry
+  labels:
+    app: apicurio-registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: registry
+  template:
+    metadata:
+      labels:
+        app: apicurio-registry
+        name: registry
+    spec:
+      serviceAccountName: apicurio-registry-kube-sync
+      containers:
+        - name: kube-sync
+          image: ${kube-sync.container.image}
+          imagePullPolicy: Always
+          env:
+          - name: QUARKUS_LOG_LEVEL
+            value: INFO
+          - name: LOG_LEVEL
+            value: DEBUG
+          - name: WATCH_NAMESPACES
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          ports:
+          - containerPort: 8787
+            name: http
+            protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /q/health/live
+              port: 8787
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /q/health/ready
+              port: 8787
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10
+          resources:
+            limits:
+              cpu: 500m
+              memory: 800Mi
+            requests:
+              cpu: 200m
+              memory: 600Mi
+        - name: apicurio-registry
+          image: quay.io/apicurio/apicurio-registry-mem:latest-snapshot
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: K_SINK
+              value: http://localhost:8787/events
+
+            - name: REGISTRY_LOG_LEVEL
+              value: INFO
+            - name: LOG_LEVEL
+              value: INFO
+            - name: QUARKUS_PROFILE
+              value: prod
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1300Mi
+            requests:
+              cpu: 200m
+              memory: 600Mi
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+  strategy:
+    type: Recreate
+---
+# Services for the components
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: apicurio-registry
+    template: apicurio-registry
+  name: apicurio-registry
+spec:
+  selector:
+    app: apicurio-registry
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+  sessionAffinity: None
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  labels:
+    app: apicurio-registry
+  name: apicurio-registry-ingress
+spec:
+  rules:
+  - host: apicurio-registry.127.0.0.1.nip.io
+    http:
+      paths:
+      - backend:
+          serviceName: apicurio-registry
+          servicePort: 8080
+        path: /
+
+
+# # Route
+# apiVersion: v1
+# kind: Route
+# metadata:
+#   name: apicurio-registry
+#   labels:
+#     app: apicurio-registry
+#     template: apicurio-registry
+# spec:
+#   to:
+#     kind: Service
+#     name: apicurio-registry
+#     weight: 100
+#   wildcardPolicy: None
+
+---

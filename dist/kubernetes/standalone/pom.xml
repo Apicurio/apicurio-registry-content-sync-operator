@@ -1,0 +1,95 @@
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.apicurio</groupId>
+        <artifactId>kube-sync</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>kube-sync-distro-kubernetes-standalone</artifactId>
+    <packaging>pom</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.apicurio</groupId>
+            <artifactId>kube-sync-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-rbac-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/kubernetes/manifests</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/../rbac/</directory>
+                                    <includes>
+                                        <include>*.yaml</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-deployment-resource</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/kubernetes/manifests</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources</directory>
+                                    <filtering>true</filtering>
+                                    <includes>
+                                        <include>*.yaml</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.coderplus.maven.plugins</groupId>
+                <artifactId>copy-rename-maven-plugin</artifactId>
+                <executions>
+                  <execution>
+                    <id>copy-crds-yaml</id>
+                    <phase>process-resources</phase>
+                    <goals>
+                      <goal>copy</goal>
+                    </goals>
+                    <configuration>
+                      <sourceFile>
+                        ${basedir}/../../../api/target/classes/META-INF/dekorate/kubernetes.yml
+                      </sourceFile>
+                      <destinationFile>
+                        ${basedir}/target/kubernetes/manifests/00-apicurio-registry-kube-sync-crds.yaml
+                      </destinationFile>
+                    </configuration>
+                  </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
