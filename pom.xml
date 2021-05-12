@@ -1,0 +1,163 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.apicurio</groupId>
+    <artifactId>kube-sync</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <properties>
+        <!-- <container.image>test-image:latest</container.image> -->
+
+        <apicurio.registry.version>2.0.0-SNAPSHOT</apicurio.registry.version>
+
+        <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
+        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.parameters>true</maven.compiler.parameters>
+        <compiler-plugin.version>3.8.1</compiler-plugin.version>
+        <version.resources.plugin>3.2.0</version.resources.plugin>
+        <jandex-plugin.version>1.0.7</jandex-plugin.version>
+        <junit.platform.version>1.7.0</junit.platform.version>
+        <version.copy-rename.plugin>1.0.1</version.copy-rename.plugin>
+        <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
+        
+        <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
+        <quarkus.platform.artifact-id>quarkus-universe-bom</quarkus.platform.artifact-id>
+        <quarkus.platform.version>1.12.2.Final</quarkus.platform.version>
+        <quarkus-plugin.version>1.12.2.Final</quarkus-plugin.version>
+        
+        <quarkus.operator.extension>1.8.0</quarkus.operator.extension>
+        <java.operator-sdk.version>1.8.1</java.operator-sdk.version>
+        
+        <log4j2.version>2.13.3</log4j2.version>
+        <lombok.version>1.18.16</lombok.version>
+        <dekorate.version>2.0.0.beta8</dekorate.version>
+        
+        <kube-sync.container.image>${quarkus.container-image.registry}/${quarkus.container-image.group}/${quarkus.container-image.name}:${quarkus.container-image.tag}</kube-sync.container.image>
+
+    </properties>
+
+    <modules>
+        <module>api</module>
+        <module>sync</module>
+        <module>dist/kubernetes/standalone</module>
+        <module>dist/kubernetes/simple</module>
+    </modules>
+    
+    <dependencyManagement>
+        <dependencies>
+            
+            <dependency>
+                <groupId>io.apicurio</groupId>
+                <artifactId>kube-sync-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.apicurio</groupId>
+                <artifactId>apicurio-registry-client</artifactId>
+                <version>${apicurio.registry.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>${quarkus.platform.group-id}</groupId>
+                <artifactId>${quarkus.platform.artifact-id}</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.quarkiverse.operatorsdk</groupId>
+                <artifactId>quarkus-operator-sdk</artifactId>
+                <version>${quarkus.operator.extension}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>io.javaoperatorsdk</groupId>
+                <artifactId>operator-framework-core</artifactId>
+                <version>${java.operator-sdk.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-kubernetes-client</artifactId>
+                <version>${quarkus.platform.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
+                <version>${quarkus.platform.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>crd-annotations</artifactId>
+                <version>${dekorate.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <!-- test -->
+            <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-junit5</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-launcher</artifactId>
+                <version>${junit.platform.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>${version.resources.plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.coderplus.maven.plugins</groupId>
+                    <artifactId>copy-rename-maven-plugin</artifactId>
+                    <version>${version.copy-rename.plugin}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${maven.multiModuleProjectDirectory}/pom.properties</file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+    </build>
+
+</project>

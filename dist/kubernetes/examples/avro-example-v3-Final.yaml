@@ -1,0 +1,30 @@
+apiVersion: apicur.io/v1alpha1
+kind: Artifact
+metadata:
+  name: pets-avro-example-v3-final
+spec:
+  artifactId: pests-avro-record
+  version: "v3.Final"
+  name: pets-avro
+  description: "super pets avro"
+  type: AVRO
+  labels:
+    - avro
+    - kafka
+  properties:
+    test: fabian
+  state: ENABLED
+  content: |
+    {"namespace": "example.avro",
+     "type": "record",
+     "name": "Pet",
+     "fields": [
+         {"name": "name", "type": "string"},
+         {"name": "holderId",  "type": ["int", "null"]},
+         {"name": "type", "type": ["string", "null"]},
+         {"name": "color", "type": ["string", "null"]},
+         {"name": "age", "type": ["int", "null"]},
+         {"name": "weight", "type": ["int", "null"]}
+     ]
+    }
+
