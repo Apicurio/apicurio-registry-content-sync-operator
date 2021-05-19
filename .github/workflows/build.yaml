@@ -26,7 +26,7 @@ jobs:
 
       - name: Build
         run: |
-          ./mvnw package
+          mvn package
 
       - name: Login to Quay.io Registry
         if: github.event_name == 'push'
@@ -34,4 +34,4 @@ jobs:
 
       - name: Build container
         run: |
-          ./mvnw clean package -pl sync -am -DskipTests --no-transfer-progress -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true
+          mvn clean package -pl sync -am -DskipTests --no-transfer-progress -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true
