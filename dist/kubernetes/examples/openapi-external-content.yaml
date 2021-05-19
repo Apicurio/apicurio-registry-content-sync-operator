@@ -1,0 +1,17 @@
+apiVersion: artifact.apicur.io/v1alpha1
+kind: Artifact
+metadata:
+  name: artifact-openapi-external-sample
+spec:
+  artifactId: artifact-openapi-external-sample
+  name: pets-api-external
+  description: "super pets api, definition from url"
+  type: OPENAPI
+  labels:
+    - openapi
+    - api
+  properties:
+    custom1: bubu
+    custom2: lala
+  state: ENABLED
+  externalContent: https://raw.githubusercontent.com/dweber019/apicurio-registry-artifact-operator/master/config/samples/openapi_example.json

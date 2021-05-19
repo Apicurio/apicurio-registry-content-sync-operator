@@ -1,6 +1,5 @@
 package io.apicurio.sync.api;
 
-import io.dekorate.crd.annotation.Crd;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
@@ -14,9 +13,8 @@ import lombok.EqualsAndHashCode;
         refs = @BuildableReference(CustomResource.class),
         editableEnabled = false
 )
-@Group("apicur.io")
+@Group("artifact.apicur.io")
 @Version("v1alpha1")
-@Crd(group = "apicur.io", version = "v1alpha1", status = ArtifactStatus.class)
 @EqualsAndHashCode(callSuper = true)
 public class Artifact extends CustomResource<ArtifactSpec, ArtifactStatus> implements Namespaced {
 

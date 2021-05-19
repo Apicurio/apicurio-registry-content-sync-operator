@@ -1,6 +1,7 @@
 package io.apicurio.sync.controller;
 
 import java.io.ByteArrayInputStream;
+import java.time.Duration;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -20,6 +21,7 @@ import io.apicurio.registry.rest.v2.beans.UpdateState;
 import io.apicurio.registry.rest.v2.beans.VersionMetaData;
 import io.apicurio.registry.types.ArtifactState;
 import io.apicurio.registry.types.ArtifactType;
+import io.apicurio.sync.Configuration;
 import io.apicurio.sync.api.Artifact;
 import io.apicurio.sync.api.ArtifactSpec;
 import io.apicurio.sync.api.ArtifactStatus;
@@ -28,6 +30,10 @@ import io.javaoperatorsdk.operator.api.Controller;
 import io.javaoperatorsdk.operator.api.DeleteControl;
 import io.javaoperatorsdk.operator.api.ResourceController;
 import io.javaoperatorsdk.operator.api.UpdateControl;
+import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.mutiny.ext.web.client.WebClient;
 
 @Controller(generationAwareEventProcessing = true, namespaces = Controller.WATCH_CURRENT_NAMESPACE)
 //DelayRegistrationUntil
@@ -39,6 +45,12 @@ public class ArtifactController implements ResourceController<Artifact> {
 
     @Inject
     RegistryClient registryClient;
+
+    @Inject
+    WebClient webClient;
+
+    @Inject
+    Configuration config;
 
     @Override
     public DeleteControl deleteResource(Artifact resource, Context<Artifact> context) {
@@ -52,14 +64,21 @@ public class ArtifactController implements ResourceController<Artifact> {
 
 //        Optional<CustomResourceEvent> latestArtifactEvent = context.getEvents().getLatestOfType(CustomResourceEvent.class);
 
-        if (resource.getSpec().getContent() == null) {
+        byte[] content;
+        if (resource.getSpec().getContent() != null) {
+            content = resource.getSpec().getContent().getBytes();
+        } else if (resource.getSpec().getExternalContent() != null) {
+            OperationContext<byte[]> ctx = getExternalContent(resource.getSpec().getExternalContent());
+            if (ctx.getError() != null) {
+                updateArtifactStatus(resource, ctx.getError());
+                return UpdateControl.updateStatusSubResource(resource);
+            } else {
+                content = ctx.getData();
+            }
+        } else {
             updateArtifactStatus(resource, "Content is not provided");
             return UpdateControl.updateStatusSubResource(resource);
         }
-
-        byte[] content = resource.getSpec().getContent().getBytes();
-        //TODO get external content
-
 
         ArtifactSpec spec = resource.getSpec();
         int beforeHandleHash = spec.hashCode();
@@ -82,7 +101,7 @@ public class ArtifactController implements ResourceController<Artifact> {
                 return UpdateControl.updateStatusSubResource(resource);
             }
 
-            ArtifactMetaData meta = ctx.getMetadata();
+            ArtifactMetaData meta = ctx.getData();
 
             spec.setGroupId(meta.getGroupId());
             spec.setArtifactId(meta.getId());
@@ -243,6 +262,38 @@ public class ArtifactController implements ResourceController<Artifact> {
         meta.setState(vmeta.getState());
 
         return meta;
+    }
+
+    private OperationContext<byte[]> getExternalContent(String url) {
+        try {
+            Optional<Long> contentLength = webClient.headAbs(url)
+                    .send()
+                    .map(res -> {
+                        if (res.statusCode() == 200) {
+                            return Long.valueOf(res.getHeader("Content-Length"));
+                        } else {
+                            log.debug("Head request, status {}", res.statusMessage());
+                        }
+                        return null;
+                    })
+                    .await().asOptional().atMost(Duration.ofSeconds(5));
+            if (contentLength.isEmpty()) {
+                return OperationContext.error("Error accessing externalContent");
+            }
+            if (contentLength.get() > config.getMaxContentLengthBytes()) {
+                return OperationContext.error("ExternalContent lenght exceeds max length");
+            }
+
+            return OperationContext.with(webClient.getAbs(url)
+                    .send()
+                    .await().atMost(Duration.ofSeconds(5))
+                    .body()
+                    .getBytes());
+
+        } catch (Exception e) {
+            log.error("Unexpected error", e);
+            return OperationContext.error("Error accessing externalContent. " + e.getMessage());
+        }
     }
 
 }
