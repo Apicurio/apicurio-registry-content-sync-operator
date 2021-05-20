@@ -1,52 +1,37 @@
 <?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>io.apicurio</groupId>
-    <artifactId>kube-sync</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
-  </parent>
-  <artifactId>kube-sync-server</artifactId>
-  
-  <dependencies>
+    <parent>
+        <groupId>io.apicurio</groupId>
+        <artifactId>kube-sync</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>kube-sync-server</artifactId>
 
-    <dependency>
-      <groupId>io.apicurio</groupId>
-      <artifactId>kube-sync-api</artifactId>
-    </dependency>
+    <dependencies>
 
-    <dependency>
-      <groupId>io.apicurio</groupId>
-      <artifactId>apicurio-registry-client</artifactId>
-    </dependency>
+        <dependency>
+            <groupId>io.apicurio</groupId>
+            <artifactId>kube-sync-api</artifactId>
+        </dependency>
 
-    <dependency>
-        <groupId>${quarkus.platform.group-id}</groupId>
-        <artifactId>${quarkus.platform.artifact-id}</artifactId>
-        <version>${quarkus.platform.version}</version>
-        <type>pom</type>
-    </dependency>
+        <dependency>
+            <groupId>io.apicurio</groupId>
+            <artifactId>apicurio-registry-client</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>io.quarkiverse.operatorsdk</groupId>
             <artifactId>quarkus-operator-sdk</artifactId>
         </dependency>
 
-        <!-- WORKAROUND FORCING VERSION -->
-        <dependency>
-            <groupId>io.javaoperatorsdk</groupId>
-            <artifactId>operator-framework-core</artifactId>
-            <version>${java.operator-sdk.version}</version>
-        </dependency>
-            
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-kubernetes-client</artifactId>
         </dependency>
-    
+
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy-jackson</artifactId>
@@ -55,87 +40,102 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-health</artifactId>
         </dependency>
-    
+
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-vertx-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-mutiny</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.smallrye.reactive</groupId>
+            <artifactId>smallrye-mutiny-vertx-web-client</artifactId>
+        </dependency>
+
         <!-- test -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5</artifactId>
             <scope>test</scope>
         </dependency>
-  </dependencies>
-  
-  <build>
-    <plugins>
-        <plugin>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-maven-plugin</artifactId>
-            <version>${quarkus-plugin.version}</version>
-            <extensions>true</extensions>
-            <executions>
-                <execution>
-                    <goals>
-                        <goal>build</goal>
-                        <goal>generate-code</goal>
-                        <goal>generate-code-tests</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
-        <plugin>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>${compiler-plugin.version}</version>
-        </plugin>
-        <plugin>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>${surefire-plugin.version}</version>
-            <configuration>
-                <systemPropertyVariables>
-                    <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-                    <maven.home>${maven.home}</maven.home>
-                </systemPropertyVariables>
-            </configuration>
-        </plugin>
-    </plugins>
-</build>
+    </dependencies>
 
-<profiles>
-    <profile>
-        <id>native</id>
-        <activation>
-            <property>
-                <name>native</name>
-            </property>
-        </activation>
-        <build>
-            <plugins>
-                <plugin>
-                    <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>${surefire-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>integration-test</goal>
-                                <goal>verify</goal>
-                            </goals>
-                            <configuration>
-                                <systemPropertyVariables>
-                                    <native.image.path>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-maven-plugin</artifactId>
+                <version>${quarkus-plugin.version}</version>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>generate-code</goal>
+                            <goal>generate-code-tests</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${compiler-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire-plugin.version}</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <maven.home>${maven.home}</maven.home>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>native</id>
+            <activation>
+                <property>
+                    <name>native</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${surefire-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                                <configuration>
+                                    <systemPropertyVariables>
+                                        <native.image.path>
                                         ${project.build.directory}/${project.build.finalName}-runner
                                     </native.image.path>
-                                    <java.util.logging.manager>
+                                        <java.util.logging.manager>
                                         org.jboss.logmanager.LogManager
                                     </java.util.logging.manager>
-                                    <maven.home>${maven.home}</maven.home>
-                                </systemPropertyVariables>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </build>
-        <properties>
-            <quarkus.package.type>native</quarkus.package.type>
-        </properties>
-    </profile>
-</profiles>
+                                        <maven.home>${maven.home}</maven.home>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <properties>
+                <quarkus.package.type>native</quarkus.package.type>
+            </properties>
+        </profile>
+    </profiles>
 </project>

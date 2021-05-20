@@ -21,54 +21,26 @@ import io.apicurio.registry.rest.v2.beans.ArtifactMetaData;
 /**
  * @author Fabian Martinez
  */
-public class ArtifactContext {
+public class ArtifactContext extends OperationContext<ArtifactMetaData> {
 
-    private ArtifactMetaData metadata;
-
-    private String error;
+    /**
+     * Constructor.
+     * @param data
+     */
+    public ArtifactContext(ArtifactMetaData data) {
+        super(data);
+    }
 
     public ArtifactContext(String error) {
-        this.error = error;
+        super(error);
     }
 
-    public ArtifactContext(ArtifactMetaData metadata) {
-        this.metadata = metadata;
-    }
-
-    public static ArtifactContext metadata(ArtifactMetaData meta) {
-        return new ArtifactContext(meta);
+    public static ArtifactContext metadata(ArtifactMetaData data) {
+        return new ArtifactContext(data);
     }
 
     public static ArtifactContext error(String err) {
         return new ArtifactContext(err);
-    }
-
-    /**
-     * @return the metadata
-     */
-    public ArtifactMetaData getMetadata() {
-        return metadata;
-    }
-
-    /**
-     * @param metadata the metadata to set
-     */
-    public void setMetadata(ArtifactMetaData metadata) {
-        this.metadata = metadata;
-    }
-
-    /**
-     * @return the error
-     */
-    public String getError() {
-        return error;
-    }
-
-    /**
-     * @param error the error to set
-     */
-    public void setError(String error) {
-        this.error = error;
     }
 
 }

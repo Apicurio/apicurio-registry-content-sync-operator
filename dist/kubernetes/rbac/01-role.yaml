@@ -13,7 +13,7 @@ rules:
       - list
       - watch
   - apiGroups:
-      - apicur.io
+      - artifact.apicur.io
     resources:
       # operator main custom resources
       - artifacts

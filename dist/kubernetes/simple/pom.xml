@@ -1,5 +1,4 @@
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -71,21 +70,21 @@
                 <groupId>com.coderplus.maven.plugins</groupId>
                 <artifactId>copy-rename-maven-plugin</artifactId>
                 <executions>
-                  <execution>
-                    <id>copy-crds-yaml</id>
-                    <phase>process-resources</phase>
-                    <goals>
-                      <goal>copy</goal>
-                    </goals>
-                    <configuration>
-                      <sourceFile>
-                        ${basedir}/../../../api/target/classes/META-INF/dekorate/kubernetes.yml
+                    <execution>
+                        <id>copy-crds-yaml</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <sourceFile>
+                        ${basedir}/../../../api/target/classes/META-INF/fabric8/artifacts.artifact.apicur.io-v1.yml
                       </sourceFile>
-                      <destinationFile>
+                            <destinationFile>
                         ${basedir}/target/kubernetes/manifests/00-apicurio-registry-kube-sync-crds.yaml
                       </destinationFile>
-                    </configuration>
-                  </execution>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 

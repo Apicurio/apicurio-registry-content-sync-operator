@@ -24,21 +24,15 @@ jobs:
       - name: Checkout "${{ github.ref }}"
         uses: actions/checkout@v2
 
-      - name: Build Apicurio Registry Deps
-        run: |
-          cd "${{ github.workspace }}/.."
-          git clone https://github.com/Apicurio/apicurio-registry.git -o upstream apicurio-registry.git
-          cd apicurio-registry.git
-          git checkout master
-          mvn install -am -pl client
-          cd "${{ github.workspace }}"
-
       - name: Build
         run: |
           mvn package
 
-      # - name: Build container
-      #   run: |
-      #     mvn clean package -pl sync -am --no-transfer-progress \
-      #       -Dquarkus.container-image.build=true \
-      #       -Dquarkus.container-image.push=true
+      - name: Login to Quay.io Registry
+        if: github.event_name == 'push'
+        run: docker login -u "${{ secrets.QUAY_USERNAME }}" -p "${{ secrets.QUAY_PASSWORD }}" quay.io
+
+      - name: Build and push container image
+        if: github.event_name == 'push'
+        run: |
+          mvn clean package -pl sync -am -DskipTests --no-transfer-progress -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true

@@ -2,7 +2,6 @@ package io.apicurio.sync.api;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import io.dekorate.crd.annotation.PrinterColumn;
 import io.sundr.builder.annotations.Buildable;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -16,16 +15,12 @@ import lombok.ToString;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ArtifactStatus {
 
-    @PrinterColumn
     private boolean isReady;
 
     private String error;
 
-    @PrinterColumn
     private String groupId;
-    @PrinterColumn
     private String artifactId;
-    @PrinterColumn
     private String version;
     private Long globalId;
 
