@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apicurio-registry-kube-sync
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apicurio-registry-kube-sync
+  template:
+    metadata:
+      labels:
+        app: apicurio-registry-kube-sync
+    spec:
+      serviceAccountName: apicurio-registry-kube-sync
+      containers:
+      - name: kube-sync-server
+        image: quay.io/apicurio/apicurio-registry-kube-sync:latest-snapshot
+        imagePullPolicy: Always
+        env:
+        - name: APICURIO_REGISTRY_URL
+          value: http://apicurio-registry:8080/apis/registry/v2
+        - name: QUARKUS_LOG_LEVEL
+          value: INFO
+        - name: LOG_LEVEL
+          value: DEBUG
+        - name: WATCH_NAMESPACES
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        ports:
+        - containerPort: 8787
+          name: http
+          protocol: TCP
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /q/health/live
+            port: 8787
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /q/health/ready
+            port: 8787
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10
+        resources:
+            limits:
+              cpu: 500m
+              memory: 800Mi
+            requests:
+              cpu: 200m
+              memory: 600Mi
