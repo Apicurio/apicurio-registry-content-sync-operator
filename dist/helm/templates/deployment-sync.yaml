@@ -1,0 +1,64 @@
+{{- if .Values.sync.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "apicurio-registry-sync.name" . }}
+  labels:
+    {{- include "apicurio-registry-sync.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "apicurio-registry-sync.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "apicurio-registry-sync.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "apicurio-registry-sync.name" . }}
+      containers:
+        - name: kube-sync
+          image: {{ .Values.sync.image.registry }}/{{ .Values.sync.image.repository }}:{{ .Values.sync.image.tag }}
+          imagePullPolicy: "Always"
+          env:
+            - name: APICURIO_REGISTRY_URL
+              value: {{ .Values.sync.registryUrl }}
+            - name: QUARKUS_LOG_LEVEL
+              value: INFO
+            - name: LOG_LEVEL
+              value: DEBUG
+            - name: WATCH_NAMESPACES
+              value: {{ coalesce .Values.sync.watchNamespaces .Release.Namespace }}
+          ports:
+            - containerPort: 8787
+              name: http
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /q/health/live
+              port: 8787
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /q/health/ready
+              port: 8787
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10
+          {{- if or (.Values.sync.resources.limits | empty | not) (.Values.sync.resources.requests | empty | not) }}
+          resources:
+            {{- with .Values.sync.resources.requests }}
+            requests: {{ . | toYaml | nindent 14 }}
+            {{- end }}
+            {{- with .Values.sync.resources.limits }}
+            limits: {{ . | toYaml | nindent 14 }}
+            {{- end }}
+          {{- end }}
+{{- end }}

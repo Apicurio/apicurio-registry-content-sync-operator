@@ -1,0 +1,65 @@
+{{- if .Values.registry.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-apicurio-registry
+  labels:
+    {{- include "apicurio-registry-sync.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "apicurio-registry-sync.selectorLabels" . | nindent 6 }}
+      app: apicurio-registry
+  template:
+    metadata:
+      labels:
+        {{- include "apicurio-registry-sync.selectorLabels" . | nindent 8 }}
+        app: apicurio-registry
+    spec:
+      serviceAccountName: {{ include "apicurio-registry-sync.name" . }}
+      containers:
+        - name: apicurio-registry
+          image: {{ .Values.registry.image.registry }}/{{ .Values.registry.image.repository }}:{{ .Values.registry.image.tag }}
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          env:
+            # - name: K_SINK
+            #   value: http://localhost:8787/events
+            - name: REGISTRY_LOG_LEVEL
+              value: DEBUG
+            - name: LOG_LEVEL
+              value: DEBUG
+            - name: QUARKUS_PROFILE
+              value: prod
+          # livenessProbe:
+          #   httpGet:
+          #     path: /health/live
+          #     port: 8080
+          #     scheme: HTTP
+          #   initialDelaySeconds: 5
+          #   timeoutSeconds: 5
+          #   periodSeconds: 10
+          #   successThreshold: 1
+          #   failureThreshold: 3
+          # readinessProbe:
+          #   httpGet:
+          #     path: /health/ready
+          #     port: 8080
+          #     scheme: HTTP
+          #   initialDelaySeconds: 5
+          #   timeoutSeconds: 5
+          #   periodSeconds: 10
+          #   successThreshold: 1
+          #   failureThreshold: 3
+          {{- if or (.Values.registry.resources.limits | empty | not) (.Values.registry.resources.requests | empty | not) }}
+          resources:
+            {{- with .Values.registry.resources.requests }}
+            requests: {{ . | toYaml | nindent 14 }}
+            {{- end }}
+            {{- with .Values.registry.resources.limits }}
+            limits: {{ . | toYaml | nindent 14 }}
+            {{- end }}
+          {{- end }}
+{{- end }}

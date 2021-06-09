@@ -1,0 +1,8 @@
+apiVersion: v2
+name: apicurio-registry-sync
+description: Install and configure Apicurio Registry in Kubernetes.
+type: application
+version: 0.0.0
+appVersion: "2.2.0.Final"
+
+home: https://www.apicur.io/registry

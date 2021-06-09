@@ -1,0 +1,22 @@
+registry:
+  enabled: true
+  image:
+    registry: "quay.io"
+    repository: "apicurio/apicurio-registry-mem"
+    tag: "2.0.0.Final"
+  resources:
+    limits: {}
+    requests: {}
+
+sync:
+  enabled: true
+  image:
+    registry: "quay.io"
+    repository: "apicurio/apicurio-registry-kube-sync"
+    tag: "latest-snapshot"
+  registryUrl: "http://myreg-apicurio-registry:8080/apis/registry/v2"
+  # watchNamespaces: ""
+  resources:
+    limits: {}
+    requests: {}
+

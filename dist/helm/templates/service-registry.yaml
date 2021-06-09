@@ -1,0 +1,16 @@
+{{- if .Values.registry.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- include "apicurio-registry-sync.labels" . | nindent 4 }}
+  name: {{ .Release.Name }}-apicurio-registry
+spec:
+  selector:
+    {{- include "apicurio-registry-sync.selectorLabels" . | nindent 4 }}
+    app: apicurio-registry
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+{{- end }}
