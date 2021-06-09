@@ -21,7 +21,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: APICURIO_REGISTRY_URL
-              value: {{ .Values.sync.registryUrl }}
+              value: {{ coalesce .Values.sync.registryUrl (printf "http://%s:8080/apis/registry/v2" (include "apicurio-registry.name" .)) }}
             - name: QUARKUS_LOG_LEVEL
               value: INFO
             - name: LOG_LEVEL

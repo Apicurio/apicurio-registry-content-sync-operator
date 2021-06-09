@@ -18,8 +18,8 @@ sync:
     registry: "quay.io"
     repository: "apicurio/apicurio-registry-kube-sync"
     tag: "latest-snapshot"
-  registryUrl: "http://myreg-apicurio-registry:8080/apis/registry/v2"
-  watchNamespaces: ""
+  # registryUrl:
+  # watchNamespaces:
   resources: {}
     # limits:
     #   cpu: 500m
