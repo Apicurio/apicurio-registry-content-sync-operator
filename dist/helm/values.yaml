@@ -4,9 +4,13 @@ registry:
     registry: "quay.io"
     repository: "apicurio/apicurio-registry-mem"
     tag: "2.0.0.Final"
-  resources:
-    limits: {}
-    requests: {}
+  resources: {}
+    # limits:
+    #   cpu: 1000m
+    #   memory: 1300Mi
+    # requests:
+    #   cpu: 200m
+    #   memory: 600Mi
 
 sync:
   enabled: true
@@ -15,8 +19,12 @@ sync:
     repository: "apicurio/apicurio-registry-kube-sync"
     tag: "latest-snapshot"
   registryUrl: "http://myreg-apicurio-registry:8080/apis/registry/v2"
-  # watchNamespaces: ""
-  resources:
-    limits: {}
-    requests: {}
+  watchNamespaces: ""
+  resources: {}
+    # limits:
+    #   cpu: 500m
+    #   memory: 800Mi
+    # requests:
+    #   cpu: 200m
+    #   memory: 600Mi
 

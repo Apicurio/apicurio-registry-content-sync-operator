@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ include "apicurio-registry-sync.name" . }}
+  name: {{ include "apicurio-registry.name" . }}
   labels:
     {{- include "apicurio-registry-sync.labels" . | nindent 4 }}
 {{- end }}

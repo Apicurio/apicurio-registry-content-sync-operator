@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "apicurio-registry-sync.name" . }}
+  name: {{ include "apicurio-registry.name" . }}-sync
   labels:
     {{- include "apicurio-registry-sync.labels" . | nindent 4 }}
 spec:
@@ -14,7 +14,7 @@ spec:
       labels:
         {{- include "apicurio-registry-sync.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "apicurio-registry-sync.name" . }}
+      serviceAccountName: {{ include "apicurio-registry.name" . }}
       containers:
         - name: kube-sync
           image: {{ .Values.sync.image.registry }}/{{ .Values.sync.image.repository }}:{{ .Values.sync.image.tag }}
@@ -52,13 +52,8 @@ spec:
             periodSeconds: 30
             successThreshold: 1
             timeoutSeconds: 10
-          {{- if or (.Values.sync.resources.limits | empty | not) (.Values.sync.resources.requests | empty | not) }}
+          {{- with .Values.sync.resources }}
           resources:
-            {{- with .Values.sync.resources.requests }}
-            requests: {{ . | toYaml | nindent 14 }}
-            {{- end }}
-            {{- with .Values.sync.resources.limits }}
-            limits: {{ . | toYaml | nindent 14 }}
-            {{- end }}
+            {{ . | toYaml | nindent 12 }}
           {{- end }}
 {{- end }}

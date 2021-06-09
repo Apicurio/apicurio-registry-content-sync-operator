@@ -1,5 +1,5 @@
-{{- define "apicurio-registry-sync.name" -}}
-{{ printf "%s-apicurio-registry-sync" .Release.Name }}
+{{- define "apicurio-registry.name" -}}
+{{ printf "%s-apicurio-registry" .Release.Name }}
 {{- end -}}
 
 {{- define "apicurio-registry-sync.labels" -}}

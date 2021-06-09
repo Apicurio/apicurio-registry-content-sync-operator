@@ -4,11 +4,11 @@ kind: Service
 metadata:
   labels:
     {{- include "apicurio-registry-sync.labels" . | nindent 4 }}
-  name: {{ .Release.Name }}-apicurio-registry
+  name: {{ include "apicurio-registry.name" . }}
 spec:
   selector:
     {{- include "apicurio-registry-sync.selectorLabels" . | nindent 4 }}
-    app: apicurio-registry
+    app.kubernetes.io/component: registry
   ports:
     - port: 8080
       protocol: TCP

@@ -2,21 +2,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-apicurio-registry
+  name: {{ include "apicurio-registry.name" . }}
   labels:
     {{- include "apicurio-registry-sync.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
       {{- include "apicurio-registry-sync.selectorLabels" . | nindent 6 }}
-      app: apicurio-registry
+      app.kubernetes.io/component: registry
   template:
     metadata:
       labels:
         {{- include "apicurio-registry-sync.selectorLabels" . | nindent 8 }}
-        app: apicurio-registry
+        app.kubernetes.io/component: registry
     spec:
-      serviceAccountName: {{ include "apicurio-registry-sync.name" . }}
+      serviceAccountName: {{ include "apicurio-registry.name" . }}
       containers:
         - name: apicurio-registry
           image: {{ .Values.registry.image.registry }}/{{ .Values.registry.image.repository }}:{{ .Values.registry.image.tag }}
@@ -28,9 +28,9 @@ spec:
             # - name: K_SINK
             #   value: http://localhost:8787/events
             - name: REGISTRY_LOG_LEVEL
-              value: DEBUG
+              value: INFO
             - name: LOG_LEVEL
-              value: DEBUG
+              value: INFO
             - name: QUARKUS_PROFILE
               value: prod
           # livenessProbe:
@@ -38,9 +38,9 @@ spec:
           #     path: /health/live
           #     port: 8080
           #     scheme: HTTP
-          #   initialDelaySeconds: 5
+          #   initialDelaySeconds: 25
           #   timeoutSeconds: 5
-          #   periodSeconds: 10
+          #   periodSeconds: 20
           #   successThreshold: 1
           #   failureThreshold: 3
           # readinessProbe:
@@ -48,18 +48,13 @@ spec:
           #     path: /health/ready
           #     port: 8080
           #     scheme: HTTP
-          #   initialDelaySeconds: 5
+          #   initialDelaySeconds: 15
           #   timeoutSeconds: 5
-          #   periodSeconds: 10
+          #   periodSeconds: 20
           #   successThreshold: 1
           #   failureThreshold: 3
-          {{- if or (.Values.registry.resources.limits | empty | not) (.Values.registry.resources.requests | empty | not) }}
+          {{- with .Values.registry.resources }}
           resources:
-            {{- with .Values.registry.resources.requests }}
-            requests: {{ . | toYaml | nindent 14 }}
-            {{- end }}
-            {{- with .Values.registry.resources.limits }}
-            limits: {{ . | toYaml | nindent 14 }}
-            {{- end }}
+            {{ . | toYaml | nindent 12 }}
           {{- end }}
 {{- end }}
