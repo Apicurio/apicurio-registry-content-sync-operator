@@ -3,6 +3,6 @@ name: apicurio-registry
 description: Install and configure Apicurio Registry in Kubernetes.
 type: application
 version: 0.0.0
-appVersion: "2.2.0.Final"
+appVersion: 0.0.0
 
 home: https://www.apicur.io/registry
