@@ -78,7 +78,7 @@
                         </goals>
                         <configuration>
                             <sourceFile>
-                        ${basedir}/../../../api/target/classes/META-INF/fabric8/artifacts.artifact.apicur.io-v1.yml
+                        ${basedir}/../../../sync/target/kubernetes/artifacts.artifact.apicur.io-v1.yml
                       </sourceFile>
                             <destinationFile>
                         ${basedir}/target/kubernetes/manifests/00-apicurio-registry-kube-sync-crds.yaml

@@ -183,7 +183,7 @@ public class ArtifactController implements ResourceController<Artifact> {
             log.debug("Creating artifact {}", spec.getArtifactId());
             return ArtifactContext.metadata(registryClient.createArtifact(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(),
                     ArtifactType.fromValue(spec.getType()),
-                    IfExists.RETURN,
+                    IfExists.RETURN_OR_UPDATE,
                     false, new ByteArrayInputStream(content)));
         } else {
             try {
