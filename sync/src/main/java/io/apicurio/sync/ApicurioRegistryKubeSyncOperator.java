@@ -21,8 +21,6 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.apicurio.sync.controller.ArtifactController;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.Operator;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
@@ -35,19 +33,35 @@ public class ApicurioRegistryKubeSyncOperator implements QuarkusApplication {
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Inject
-    KubernetesClient client;
-
-    @Inject
     Operator operator;
 
-    @Inject
-    ArtifactController artifactController;
+//    @Inject
+//    Configuration config;
 
     @Override
     public int run(String... args) throws Exception {
         log.info("Starting Apicurio Registry Kube Sync");
+
+        printConfiguration();
+
         operator.start();
         Quarkus.waitForExit();
         return 0;
     }
+
+    private void printConfiguration() {
+//        List<String> config = StreamSupport.stream(ConfigProvider.getConfig().getPropertyNames().spliterator(), false)
+//            .sorted()
+//            .collect(Collectors.toList());
+//        config.forEach( e -> {
+//            try {
+//                String value = ConfigProvider.getConfig().getValue(e, String.class);
+//                log.info("{}={}", e, value);
+//            } catch (NoSuchElementException ex) {
+//                // ignore as some property values are not available
+//            }
+//        });
+        //TODO use Configuration to print operator config values
+    }
+
 }

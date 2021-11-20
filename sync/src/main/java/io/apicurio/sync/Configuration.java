@@ -22,9 +22,12 @@ import javax.inject.Inject;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+import io.quarkus.runtime.Startup;
+
 /**
  * @author Fabian Martinez
  */
+@Startup
 @ApplicationScoped
 public class Configuration {
 
@@ -36,14 +39,22 @@ public class Configuration {
     private final static long GIB_FACTOR = 1024 * MIB_FACTOR;
 
     @Inject
+    @ConfigProperty(name = "apicurio.sync.delete.artifacts")
+    Boolean deleteArtifactsEnabled;
+
+    @Inject
     @ConfigProperty(name = "apicurio.max.content-length", defaultValue = "5 MiB")
-    public String maxContentLength;
+    String maxContentLength;
 
     public Long maxContentLengthBytes;
 
     @PostConstruct
     public void init() {
         maxContentLengthBytes = parseBytes(maxContentLength);
+    }
+
+    public Boolean getDeleteArtifactsEnabled() {
+        return deleteArtifactsEnabled;
     }
 
     public Long getMaxContentLengthBytes() {
