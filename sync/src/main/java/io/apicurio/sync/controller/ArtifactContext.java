@@ -23,24 +23,35 @@ import io.apicurio.registry.rest.v2.beans.ArtifactMetaData;
  */
 public class ArtifactContext extends OperationContext<ArtifactMetaData> {
 
+    private final OperationOutcome outcome;
+
     /**
      * Constructor.
      * @param data
      */
-    public ArtifactContext(ArtifactMetaData data) {
+    public ArtifactContext(OperationOutcome outcome, ArtifactMetaData data) {
         super(data);
+        this.outcome = outcome;
     }
 
     public ArtifactContext(String error) {
         super(error);
+        this.outcome = OperationOutcome.ERROR;
     }
 
-    public static ArtifactContext metadata(ArtifactMetaData data) {
-        return new ArtifactContext(data);
+    public static ArtifactContext metadata(OperationOutcome outcome, ArtifactMetaData data) {
+        return new ArtifactContext(outcome, data);
     }
 
     public static ArtifactContext error(String err) {
         return new ArtifactContext(err);
+    }
+
+    /**
+     * @return the outcome
+     */
+    public OperationOutcome getOutcome() {
+        return outcome;
     }
 
 }

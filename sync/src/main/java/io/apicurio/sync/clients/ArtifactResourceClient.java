@@ -21,8 +21,11 @@ public class ArtifactResourceClient extends AbstractCustomResourceClient<Artifac
     public ArtifactList find(String groupId, String artifactId, String version) {
 
         var query = resourceClient.inNamespace(getNamespace())
-            .withField("status.artifactId", artifactId)
-            .withField("status.version", version);
+            .withField("status.artifactId", artifactId);
+
+        if (version != null) {
+            query.withField("status.version", version);
+        }
 
         if (groupId != null) {
             query.withField("status.groupId", groupId);

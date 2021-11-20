@@ -9,10 +9,8 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.rest.client.exception.ArtifactAlreadyExistsException;
 import io.apicurio.registry.rest.client.exception.ArtifactNotFoundException;
 import io.apicurio.registry.rest.v2.beans.ArtifactMetaData;
 import io.apicurio.registry.rest.v2.beans.EditableMetaData;
@@ -25,23 +23,18 @@ import io.apicurio.sync.Configuration;
 import io.apicurio.sync.api.Artifact;
 import io.apicurio.sync.api.ArtifactSpec;
 import io.apicurio.sync.api.ArtifactStatus;
+import io.apicurio.sync.clients.ArtifactResourceClient;
 import io.javaoperatorsdk.operator.api.Context;
 import io.javaoperatorsdk.operator.api.Controller;
 import io.javaoperatorsdk.operator.api.DeleteControl;
 import io.javaoperatorsdk.operator.api.ResourceController;
 import io.javaoperatorsdk.operator.api.UpdateControl;
-import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
 import io.vertx.mutiny.ext.web.client.WebClient;
 
-@Controller(generationAwareEventProcessing = true, namespaces = Controller.WATCH_CURRENT_NAMESPACE)
-//DelayRegistrationUntil
+@Controller
 public class ArtifactController implements ResourceController<Artifact> {
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
-
-    private ObjectMapper mapper = new ObjectMapper();
 
     @Inject
     RegistryClient registryClient;
@@ -52,8 +45,24 @@ public class ArtifactController implements ResourceController<Artifact> {
     @Inject
     Configuration config;
 
+    @Inject
+    ArtifactResourceClient artifactResourceClient;
+
     @Override
     public DeleteControl deleteResource(Artifact resource, Context<Artifact> context) {
+        if (config.getDeleteArtifactsEnabled()) {
+            log.debug("Handling delete {}", resource.getMetadata().getName());
+
+            ArtifactSpec spec = resource.getSpec();
+
+            var artifactsResources = artifactResourceClient.find(spec.getGroupId(), spec.getArtifactId(), null);
+            if (artifactsResources.getItems().isEmpty()) {
+                registryClient.deleteArtifact(spec.getGroupId(), spec.getArtifactId());
+            } else {
+                log.debug("Not deleteing, resources {}", artifactsResources.getItems().toString());
+            }
+
+        }
         return DeleteControl.DEFAULT_DELETE;
     }
 
@@ -83,16 +92,6 @@ public class ArtifactController implements ResourceController<Artifact> {
         ArtifactSpec spec = resource.getSpec();
         int beforeHandleHash = spec.hashCode();
 
-        //super workaround!
-        //FIXME add hashcode and equals to editablemetadata
-        int beforeHandleMetadataHash = 0;
-        try {
-            beforeHandleMetadataHash = mapper.writeValueAsString(buildMetadata(spec)).hashCode();
-        } catch (JsonProcessingException e1) {
-            updateArtifactStatus(resource, e1.getMessage());
-            return UpdateControl.updateStatusSubResource(resource);
-        }
-
         try {
 
             ArtifactContext ctx = createOrUpdateArtifact(spec, content);
@@ -106,6 +105,7 @@ public class ArtifactController implements ResourceController<Artifact> {
             spec.setGroupId(meta.getGroupId());
             spec.setArtifactId(meta.getId());
             spec.setVersion(String.valueOf(meta.getVersion()));
+            spec.setType(meta.getType().value());
 
             spec.setGlobalId(meta.getGlobalId());
             spec.setContentId(meta.getContentId());
@@ -113,39 +113,56 @@ public class ArtifactController implements ResourceController<Artifact> {
             spec.setModifiedBy(meta.getModifiedBy());
             spec.setModifiedOn(meta.getModifiedOn());
 
-            if (spec.getName() == null) {
-                spec.setName(meta.getName());
-                spec.setDescription(meta.getDescription());
-                spec.setLabels(meta.getLabels());
-                spec.setProperties(meta.getProperties());
-            } else {
 
-                int afterHandleMetadataHash = 0;
-                EditableMetaData newMetadata = buildMetadata(spec);
-                try {
-                    afterHandleMetadataHash = mapper.writeValueAsString(newMetadata).hashCode();
-                } catch (JsonProcessingException e1) {
-                    updateArtifactStatus(resource, e1.getMessage());
-                    return UpdateControl.updateStatusSubResource(resource);
+            // metadata sync
+
+            if (ctx.getOutcome() != OperationOutcome.ALREADY_EXISTS) {
+                if (spec.getName() == null) {
+                    spec.setName(meta.getName());
                 }
-
-                if (beforeHandleMetadataHash != afterHandleMetadataHash) {
-                    log.debug("Updating metadata {}", resource.getMetadata().getName());
-                    registryClient.updateArtifactVersionMetaData(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(), newMetadata);
-                } else {
-                    log.debug("Metadata was not updated, doing nothing {}", resource.getMetadata().getName());
+                if (spec.getDescription() == null) {
+                    spec.setDescription(meta.getDescription());
                 }
-
+                if (spec.getLabels() == null) {
+                    spec.setLabels(meta.getLabels());
+                }
+                if (spec.getProperties() == null) {
+                    spec.setProperties(meta.getProperties());
+                }
             }
 
-            spec.setType(meta.getType().value());
+            boolean updateMeta = false;
+
+            if (isMetaDiff(spec.getName(), meta.getName())) {
+                updateMeta = true;
+            }
+
+            if (isMetaDiff(spec.getDescription(), meta.getDescription())) {
+                updateMeta = true;
+            }
+
+            if (isMetaDiff(spec.getLabels(), meta.getLabels())) {
+                updateMeta = true;
+            }
+
+            if (isMetaDiff(spec.getProperties(), meta.getProperties())) {
+                updateMeta = true;
+            }
+
+            if (updateMeta) {
+                debugLog(spec, "updating metadata");
+                EditableMetaData newMetadata = buildMetadata(spec);
+                registryClient.updateArtifactVersionMetaData(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(), newMetadata);
+            }
+
+            //
 
             if (spec.getState() == null) {
                 spec.setState(meta.getState().value());
             }
 
             if (!meta.getState().value().equals(spec.getState())) {
-                log.debug("Updating state to {} for artifact {}", spec.getState(), resource.getMetadata().getName());
+                log.debug("Updating state to {} for artifact resource {}", spec.getState(), resource.getMetadata().getName());
                 UpdateState update = new UpdateState();
                 update.setState(ArtifactState.fromValue(spec.getState()));
                 registryClient.updateArtifactVersionState(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(), update);
@@ -156,10 +173,10 @@ public class ArtifactController implements ResourceController<Artifact> {
             setArtifactCoordinatesInStatus(resource, meta);
             updateArtifactStatus(resource, null);
             if (beforeHandleHash == afterHandleHash) {
-                log.debug("Updating only status {}", resource.getMetadata().getName());
+                log.debug("Updating only status resource = {}", resource.getMetadata().getName());
                 return UpdateControl.updateStatusSubResource(resource);
             } else {
-                log.debug("Updating resource {}", resource.getMetadata().getName());
+                log.debug("Updating resource resource = {}", resource.getMetadata().getName());
                 return UpdateControl.updateCustomResourceAndStatus(resource);
             }
         } catch (Exception e) {
@@ -167,6 +184,13 @@ public class ArtifactController implements ResourceController<Artifact> {
             updateArtifactStatus(resource, e.getMessage());
             return UpdateControl.updateStatusSubResource(resource);
         }
+    }
+
+    private boolean isMetaDiff(Object source, Object dest) {
+        if (dest == null && source != null) {
+            return true;
+        }
+        return dest != null && !dest.equals(source);
     }
 
     private EditableMetaData buildMetadata(ArtifactSpec spec) {
@@ -180,19 +204,36 @@ public class ArtifactController implements ResourceController<Artifact> {
 
     private ArtifactContext createOrUpdateArtifact(ArtifactSpec spec, byte[] content) {
         if (spec.getVersion() == null) {
-            log.debug("Creating artifact {}", spec.getArtifactId());
-            return ArtifactContext.metadata(registryClient.createArtifact(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(),
-                    ArtifactType.fromValue(spec.getType()),
-                    IfExists.RETURN_OR_UPDATE,
-                    false, new ByteArrayInputStream(content)));
+            debugLog(spec, "creating artifact");
+            try {
+                //try to create artifact, or fail
+                ArtifactType type = spec.getType() == null ? null : ArtifactType.fromValue(spec.getType());
+                return ArtifactContext.metadata(OperationOutcome.CREATED, registryClient.createArtifact(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(),
+                        type,
+                        IfExists.FAIL,
+                        false, new ByteArrayInputStream(content)));
+            } catch (ArtifactAlreadyExistsException e) {
+                try {
+                    //check what version is this exactly
+                    VersionMetaData vmeta = registryClient.getArtifactVersionMetaDataByContent(spec.getGroupId(), spec.getArtifactId(), false, new ByteArrayInputStream(content));
+                    debugLog(spec, "artifact version already exists, doing nothing");
+                    return ArtifactContext.metadata(OperationOutcome.ALREADY_EXISTS, toMeta(vmeta));
+                } catch (ArtifactNotFoundException nfe) {
+                    //artifact exists create new version
+                    debugLog(spec, "artifact exists, creating new version");
+                    ArtifactMetaData meta = registryClient.updateArtifact(spec.getGroupId(), spec.getArtifactId(), new ByteArrayInputStream(content));
+                    return ArtifactContext.metadata(OperationOutcome.UPDATED, meta);
+                    //TODO catch possible exception?
+                }
+            }
         } else {
             try {
                 VersionMetaData vmeta = registryClient.getArtifactVersionMetaDataByContent(spec.getGroupId(), spec.getArtifactId(), false, new ByteArrayInputStream(content));
                 if (vmeta.getVersion().equals(spec.getVersion())) {
-                    log.debug("This version already exists, doing nothing");
-                    return ArtifactContext.metadata(toMeta(vmeta));
+                    debugLog(spec, "version already exists, doing nothing");
+                    return ArtifactContext.metadata(OperationOutcome.ALREADY_EXISTS, toMeta(vmeta));
                 } else {
-                    log.debug("This content exists in a different version");
+                    debugLog(spec, "content exists in a different version");
                     return ArtifactContext.error("This content already exists, but in a different version of the artifact");
                 }
 //                byte[] versionContent = IoUtil.toBytes(registryClient.getArtifactVersion(spec.getGroupId(), spec.getArtifactId(), spec.getVersion()));
@@ -207,13 +248,13 @@ public class ArtifactController implements ResourceController<Artifact> {
                 try {
                     registryClient.getArtifactMetaData(spec.getGroupId(), spec.getArtifactId());
                     //artifact exists create new version
-                    log.debug("Creating new version {}", spec.getArtifactId());
+                    debugLog(spec, "creating new version");
                     VersionMetaData vmeta = registryClient.createArtifactVersion(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(), new ByteArrayInputStream(content));
-                    return ArtifactContext.metadata(toMeta(vmeta));
+                    return ArtifactContext.metadata(OperationOutcome.UPDATED, toMeta(vmeta));
                 } catch (ArtifactNotFoundException e1) {
                     //artifact does not exists at all
-                    log.debug("Creating artifact specific version {}", spec.getArtifactId());
-                    return ArtifactContext.metadata(registryClient.createArtifact(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(),
+                    debugLog(spec, "creating artifact specific version {}");
+                    return ArtifactContext.metadata(OperationOutcome.CREATED, registryClient.createArtifact(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(),
                             ArtifactType.fromValue(spec.getType()),
                             IfExists.RETURN,
                             false, new ByteArrayInputStream(content)));
@@ -294,6 +335,10 @@ public class ArtifactController implements ResourceController<Artifact> {
             log.error("Unexpected error", e);
             return OperationContext.error("Error accessing externalContent. " + e.getMessage());
         }
+    }
+
+    private void debugLog(ArtifactSpec spec, String message) {
+        log.debug("[ groupId = {} artifactId = {} ] " + message, spec.getGroupId(), spec.getArtifactId());
     }
 
 }
