@@ -1,3 +1,5 @@
+#!/bin/bash
+
 diff dist/kubernetes/standalone/target/kubernetes/manifests/ deploy/standalone/
 ret=$?
 

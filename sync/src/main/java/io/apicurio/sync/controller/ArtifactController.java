@@ -133,6 +133,7 @@ public class ArtifactController implements ResourceController<Artifact> {
 
             boolean updateMeta = false;
 
+            debugLog(spec, "Processing spec with name " + spec.getName());
             if (isMetaDiff(spec.getName(), meta.getName())) {
                 updateMeta = true;
             }
@@ -202,7 +203,7 @@ public class ArtifactController implements ResourceController<Artifact> {
         return artifactMeta;
     }
 
-    private ArtifactContext createOrUpdateArtifact(ArtifactSpec spec, byte[] content) {
+    private synchronized ArtifactContext createOrUpdateArtifact(ArtifactSpec spec, byte[] content) {
         if (spec.getVersion() == null) {
             debugLog(spec, "creating artifact");
             try {

@@ -24,12 +24,30 @@ jobs:
       - name: Checkout "${{ github.ref }}"
         uses: actions/checkout@v2
 
+      - name: Cache m2 repo
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Setup Minikube
+        uses: manusa/actions-setup-minikube@v2.4.1
+        with:
+          minikube version: 'v1.20.0'
+          kubernetes version: 'latest'
+          start args: '--addons=registry,storage,ingress --insecure-registry "10.0.0.0/24" --insecure-registry "localhost:5000" --extra-config=kubeadm.ignore-preflight-errors=SystemVerification --extra-config=apiserver.authorization-mode=RBAC,Node'
+
       - name: Build
         run: |
-          mvn package
+          mvn package -Pimage-test-push --no-transfer-progress -DtrimStackTrace=false
 
       - name: Check deploy manifests
         run: ./check-deploy-manifests.sh
+
+      - name: e2e tests
+        run: mvn verify -Pe2e -pl e2e -am --no-transfer-progress -DtrimStackTrace=false
 
       - name: Login to Quay.io Registry
         if: github.event_name == 'push'
@@ -37,5 +55,7 @@ jobs:
 
       - name: Build and push container image
         if: github.event_name == 'push'
+        # mvn clean package -Pimage-test-push -pl sync -am -DskipTests --no-transfer-progress -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true
         run: |
-          mvn clean package -pl sync -am -DskipTests --no-transfer-progress -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true
+          docker tag localhost:5000/apicurio/apicurio-registry-kube-sync:latest-snapshot quay.io/apicurio/apicurio-registry-kube-sync:latest-snapshot
+          docker push quay.io/apicurio/apicurio-registry-kube-sync:latest-snapshot

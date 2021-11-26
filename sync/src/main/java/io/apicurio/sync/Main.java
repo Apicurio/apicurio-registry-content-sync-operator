@@ -26,6 +26,6 @@ import io.quarkus.runtime.annotations.QuarkusMain;
 public class Main {
 
     public static void main(String... args) {
-        Quarkus.run(ApicurioRegistryKubeSyncOperator.class, args);
+        Quarkus.run(args);
     }
 }

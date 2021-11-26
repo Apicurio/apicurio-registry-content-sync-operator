@@ -49,9 +49,9 @@ public abstract class AbstractCustomResourceClient<T extends CustomResource<?, ?
         return resourceClient.inNamespace(resource.getMetadata().getNamespace()).create(resource);
     }
 
-    public T createOrReplace(T resource) {
-        return resourceClient.inNamespace(resource.getMetadata().getNamespace()).createOrReplace(resource);
-    }
+//    public T createOrReplace(T resource) {
+//        return resourceClient.inNamespace(resource.getMetadata().getNamespace()).createOrReplace(resource);
+//    }
 
     public T edit(String namespace, String name, UnaryOperator<T> function) {
         return resourceClient.inNamespace(namespace).withName(name).edit(function);
@@ -59,6 +59,10 @@ public abstract class AbstractCustomResourceClient<T extends CustomResource<?, ?
 
     public T patch(T resource) {
         return resourceClient.inNamespace(resource.getMetadata().getNamespace()).withName(resource.getMetadata().getName()).patch(resource);
+    }
+
+    public T replace(T resource) {
+        return resourceClient.inNamespace(resource.getMetadata().getNamespace()).withName(resource.getMetadata().getName()).replace(resource);
     }
 
     public List<T> list(String namespace) {

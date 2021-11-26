@@ -25,15 +25,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.rest.v2.beans.VersionMetaData;
 import io.apicurio.sync.api.ArtifactBuilder;
 import io.apicurio.sync.api.ArtifactSpecBuilder;
-import io.apicurio.sync.controller.ArtifactController;
+import io.apicurio.sync.clients.ArtifactResourceClient;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 
+/**
+ * @author Fabian Martinez
+ */
 @QuarkusTest
 @TestProfile(ApicurioKubeSyncTestProfile.class)
-public class ArtifactControllerTest {
+public class OperatorTest {
 
     Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -41,10 +45,10 @@ public class ArtifactControllerTest {
     RegistryClient registryClient;
 
     @Inject
-    ArtifactController controller;
+    ArtifactResourceClient artifactK8sClient;
 
     @Test
-    public void testArtifactCRUD() {
+    public void testOperator() {
 
         assertEquals(0, registryClient.listArtifactsInGroup(null).getCount().intValue());
 
@@ -61,18 +65,39 @@ public class ArtifactControllerTest {
 
         {
 
-            controller.createOrUpdateResource(artifactv1, null);
+            artifactK8sClient.create(artifactv1);
+
+            TestUtils.await(() -> registryClient.listArtifactsInGroup(null).getCount().intValue() == 1);
 
             assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
             assertEquals(1, registryClient.listArtifactVersions(null, "person", 0, 100).getCount());
 
-            controller.createOrUpdateResource(artifactv1, null);
-            assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
-            assertEquals(1, registryClient.listArtifactVersions(null, "person", 0, 100).getCount());
+//            controller.createOrUpdateResource(artifactv1, null);
+//            assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
+//            assertEquals(1, registryClient.listArtifactVersions(null, "person", 0, 100).getCount());
 
             //update metadata
+//            var artifactget = artifactK8sClient.getByName(ApicurioKubeSyncTestProfile.NAMESPACE, "foo-v1");
+//            artifactget.getSpec().setName("person foo");
+//
+//            assertEquals(ApicurioKubeSyncTestProfile.NAMESPACE, artifactget.getMetadata().getNamespace());
+//            assertEquals("person foo", artifactget.getSpec().getName());
+//
+//            artifactK8sClient.replace(artifactget);
+
             artifactv1.getSpec().setName("person foo");
-            controller.createOrUpdateResource(artifactv1, null);
+            artifactK8sClient.replace(artifactv1);
+
+            try {
+                TestUtils.await(() -> {
+                    VersionMetaData vmetadata = registryClient.getArtifactVersionMetaData(null, "person", "1");
+                    logger.debug("Awaiting for metadata update {}", vmetadata);
+                    return "person foo".equals(vmetadata.getName());
+                });
+            } finally {
+                logger.warn("Versions of artifact {}", registryClient.listArtifactVersions(null, "person", 0, 100).getCount());
+            }
+
             assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
             assertEquals(1, registryClient.listArtifactVersions(null, "person", 0, 100).getCount());
             assertEquals("person foo", registryClient.getArtifactVersionMetaData(null, "person", "1").getName());
@@ -91,17 +116,19 @@ public class ArtifactControllerTest {
 
         {
 
-            controller.createOrUpdateResource(artifactv2, null);
+            artifactK8sClient.create(artifactv2);
+
+            TestUtils.await(() -> registryClient.listArtifactVersions(null, "person", 0, 100).getCount() == 2);
 
             assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
             var versions = registryClient.listArtifactVersions(null, "person", 0, 100);
             assertEquals(2, versions.getCount());
 
-            controller.createOrUpdateResource(artifactv2, null);
-
-            assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
-            versions = registryClient.listArtifactVersions(null, "person", 0, 100);
-            assertEquals(2, versions.getCount());
+//            controller.createOrUpdateResource(artifactv2, null);
+//
+//            assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
+//            versions = registryClient.listArtifactVersions(null, "person", 0, 100);
+//            assertEquals(2, versions.getCount());
 
         }
 

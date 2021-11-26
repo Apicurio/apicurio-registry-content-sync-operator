@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package io.apicurio.sync;
+package io.apicurio.e2e;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.stream.Collectors;
-
 import java.time.Duration;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assertions;
@@ -35,13 +34,15 @@ import org.junit.jupiter.api.Assertions;
 public class TestUtils {
 
     public static String resourceToString(String resourceName) {
-            try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName)) {
-                Assertions.assertNotNull(stream, "Resource not found: " + resourceName);
-                return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8)).lines().collect(Collectors.joining("\n"));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        try (InputStream stream = Thread.currentThread().getContextClassLoader()
+                .getResourceAsStream(resourceName)) {
+            Assertions.assertNotNull(stream, "Resource not found: " + resourceName);
+            return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8)).lines()
+                    .collect(Collectors.joining("\n"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+    }
 
     public static void await(Callable<Boolean> condition) {
         Awaitility.await()
