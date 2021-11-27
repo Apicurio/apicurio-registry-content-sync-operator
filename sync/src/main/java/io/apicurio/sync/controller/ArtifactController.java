@@ -23,6 +23,7 @@ import io.apicurio.sync.Configuration;
 import io.apicurio.sync.api.Artifact;
 import io.apicurio.sync.api.ArtifactSpec;
 import io.apicurio.sync.api.ArtifactStatus;
+import io.apicurio.sync.api.labels.ArtifactLabelsHandler;
 import io.apicurio.sync.clients.ArtifactResourceClient;
 import io.javaoperatorsdk.operator.api.Context;
 import io.javaoperatorsdk.operator.api.Controller;
@@ -48,6 +49,9 @@ public class ArtifactController implements ResourceController<Artifact> {
     @Inject
     ArtifactResourceClient artifactResourceClient;
 
+    @Inject
+    ArtifactLabelsHandler labelsHandler;
+
     @Override
     public DeleteControl deleteResource(Artifact resource, Context<Artifact> context) {
         if (config.getDeleteArtifactsEnabled()) {
@@ -55,7 +59,7 @@ public class ArtifactController implements ResourceController<Artifact> {
 
             ArtifactSpec spec = resource.getSpec();
 
-            var artifactsResources = artifactResourceClient.find(spec.getGroupId(), spec.getArtifactId(), null);
+            var artifactsResources = artifactResourceClient.listVersions(resource);
             if (artifactsResources.getItems().isEmpty()) {
                 registryClient.deleteArtifact(spec.getGroupId(), spec.getArtifactId());
             } else {
@@ -106,6 +110,7 @@ public class ArtifactController implements ResourceController<Artifact> {
             spec.setArtifactId(meta.getId());
             spec.setVersion(String.valueOf(meta.getVersion()));
             spec.setType(meta.getType().value());
+            labelsHandler.setLabels(resource);
 
             spec.setGlobalId(meta.getGlobalId());
             spec.setContentId(meta.getContentId());

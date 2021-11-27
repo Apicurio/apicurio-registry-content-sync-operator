@@ -11,6 +11,10 @@
     <artifactId>kube-sync-distro-kubernetes-simple</artifactId>
     <packaging>pom</packaging>
 
+    <properties>
+        <quarkus.container-image.registry>quay.io</quarkus.container-image.registry>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.apicurio</groupId>
@@ -90,5 +94,14 @@
 
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>image-test-push</id>
+            <properties>
+                <quarkus.container-image.registry>localhost:5000</quarkus.container-image.registry>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>

@@ -24,6 +24,10 @@ jobs:
       - name: Checkout "${{ github.ref }}"
         uses: actions/checkout@v2
 
+      # validations for the deploy folder
+      # - name: Check deploy manifests
+      #   run: ./check-deploy-manifests.sh
+
       - name: Cache m2 repo
         uses: actions/cache@v1
         with:
@@ -43,7 +47,7 @@ jobs:
         run: |
           mvn package -Pimage-test-push --no-transfer-progress -DtrimStackTrace=false
 
-      - name: Check deploy manifests
+      - name: Setup deploy manifests
         run: ./check-deploy-manifests.sh
 
       - name: e2e tests
