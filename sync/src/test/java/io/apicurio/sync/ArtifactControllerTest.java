@@ -17,6 +17,9 @@
 package io.apicurio.sync;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -56,6 +59,8 @@ public class ArtifactControllerTest {
                 .withSpec(new ArtifactSpecBuilder()
                         .withArtifactId("person")
                         .withContent(TestUtils.resourceToString("artifactTypes/jsonSchema/person_v1.json"))
+                        .withLabels("foo", "baz")
+                        .withProperties(Map.of("prop", "test"))
                         .build())
                 .build();
 
@@ -68,14 +73,32 @@ public class ArtifactControllerTest {
 
             controller.createOrUpdateResource(artifactv1, null);
             assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
-            assertEquals(1, registryClient.listArtifactVersions(null, "person", 0, 100).getCount());
+            var versions = registryClient.listArtifactVersions(null, "person", 0, 100);
+            assertEquals(1, versions.getCount());
+
+            {
+                var version1 = versions.getVersions().get(0);
+                assertEquals(2, version1.getLabels().size());
+                assertTrue(version1.getLabels().contains("foo"));
+                assertTrue(version1.getLabels().contains("baz"));
+                assertEquals(1, version1.getProperties().size());
+                assertTrue(version1.getProperties().containsKey("prop"));
+                assertEquals("test", version1.getProperties().get("prop"));
+            }
 
             //update metadata
             artifactv1.getSpec().setName("person foo");
             controller.createOrUpdateResource(artifactv1, null);
             assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
             assertEquals(1, registryClient.listArtifactVersions(null, "person", 0, 100).getCount());
-            assertEquals("person foo", registryClient.getArtifactVersionMetaData(null, "person", "1").getName());
+            var version1updated = registryClient.getArtifactVersionMetaData(null, "person", "1");
+            assertEquals("person foo", version1updated.getName());
+            assertEquals(2, version1updated.getLabels().size());
+            assertTrue(version1updated.getLabels().contains("foo"));
+            assertTrue(version1updated.getLabels().contains("baz"));
+            assertEquals(1, version1updated.getProperties().size());
+            assertTrue(version1updated.getProperties().containsKey("prop"));
+            assertEquals("test", version1updated.getProperties().get("prop"));
         }
 
         var artifactv2 = new ArtifactBuilder()
@@ -105,10 +128,9 @@ public class ArtifactControllerTest {
 
         }
 
-        //TODO delete can only be tested in real k8s cluster or if quarkus tests can work properly with mock k8s server
-//        controller.deleteResource(artifactv1, null);
-//        controller.deleteResource(artifactv2, null);
-//        assertEquals(0, registryClient.listArtifactsInGroup(null).getCount().intValue());
+        controller.deleteResource(artifactv1, null);
+        controller.deleteResource(artifactv2, null);
+        assertEquals(0, registryClient.listArtifactsInGroup(null).getCount().intValue());
 
     }
 

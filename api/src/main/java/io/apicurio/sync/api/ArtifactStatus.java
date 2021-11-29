@@ -15,7 +15,7 @@ import lombok.ToString;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ArtifactStatus {
 
-    private boolean isReady;
+    private String status;
 
     private String error;
 
@@ -23,14 +23,6 @@ public class ArtifactStatus {
     private String artifactId;
     private String version;
     private Long globalId;
-
-    public boolean isReady() {
-        return isReady;
-    }
-
-    public void setReady(boolean isReady) {
-        this.isReady = isReady;
-    }
 
     public String getError() {
         return error;
@@ -94,6 +86,20 @@ public class ArtifactStatus {
      */
     public void setGlobalId(Long globalId) {
         this.globalId = globalId;
+    }
+
+    /**
+     * @return the status
+     */
+    public String getStatus() {
+        return status;
+    }
+
+    /**
+     * @param status the status to set
+     */
+    public void setStatus(String status) {
+        this.status = status;
     }
 
 }
