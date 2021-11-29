@@ -69,9 +69,6 @@ spec:
             - containerPort: 8080
               protocol: TCP
           env:
-            - name: K_SINK
-              value: http://localhost:8787/events
-
             - name: REGISTRY_LOG_LEVEL
               value: INFO
             - name: LOG_LEVEL

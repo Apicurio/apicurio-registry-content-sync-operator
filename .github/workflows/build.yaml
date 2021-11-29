@@ -24,10 +24,6 @@ jobs:
       - name: Checkout "${{ github.ref }}"
         uses: actions/checkout@v2
 
-      # validations for the deploy folder
-      # - name: Check deploy manifests
-      #   run: ./check-deploy-manifests.sh
-
       - name: Cache m2 repo
         uses: actions/cache@v1
         with:
@@ -36,6 +32,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Build
+        # runs unit tests, builds container image and builds kubernetes dist
+        run: |
+          mvn package -Pbuild-image --no-transfer-progress -DtrimStackTrace=false
+
+      - name: Setup deploy manifests
+        # checks the kubernetes manifests in deploy folder are the same as the manifests built in dist folder
+        run: ./check-deploy-manifests.sh
+
       - name: Setup Minikube
         uses: manusa/actions-setup-minikube@v2.4.1
         with:
@@ -43,13 +48,11 @@ jobs:
           kubernetes version: 'latest'
           start args: '--addons=registry,storage,ingress --insecure-registry "10.0.0.0/24" --insecure-registry "localhost:5000" --extra-config=kubeadm.ignore-preflight-errors=SystemVerification --extra-config=apiserver.authorization-mode=RBAC,Node'
 
-      - name: Build
-        run: |
-          mvn package -Pimage-test-push --no-transfer-progress -DtrimStackTrace=false
+      # tags and pushes container image to minikube image registry and deploys the operator to setup test env
+      - name: setup e2e tests
+        run: ./e2e/scripts/prepare-env.sh
 
-      - name: Setup deploy manifests
-        run: ./check-deploy-manifests.sh
-
+      # executes e2e tests that expect the kubernetes cluster to be running and with the operator deployed
       - name: e2e tests
         run: mvn verify -Pe2e -pl e2e -am --no-transfer-progress -DtrimStackTrace=false
 
@@ -59,7 +62,5 @@ jobs:
 
       - name: Build and push container image
         if: github.event_name == 'push'
-        # mvn clean package -Pimage-test-push -pl sync -am -DskipTests --no-transfer-progress -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true
         run: |
-          docker tag localhost:5000/apicurio/apicurio-registry-kube-sync:latest-snapshot quay.io/apicurio/apicurio-registry-kube-sync:latest-snapshot
           docker push quay.io/apicurio/apicurio-registry-kube-sync:latest-snapshot

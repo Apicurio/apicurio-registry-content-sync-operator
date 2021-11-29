@@ -115,12 +115,9 @@
 
     <profiles>
         <profile>
-            <id>image-test-push</id>
+            <id>build-image</id>
             <properties>
                 <quarkus.container-image.build>true</quarkus.container-image.build>
-                <quarkus.container-image.push>true</quarkus.container-image.push>
-                <quarkus.container-image.insecure>true</quarkus.container-image.insecure>
-                <quarkus.container-image.registry>localhost:5000</quarkus.container-image.registry>
             </properties>
         </profile>
         <profile>

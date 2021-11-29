@@ -18,7 +18,7 @@ spec:
       serviceAccountName: apicurio-registry-kube-sync
       containers:
         - name: kube-sync
-          image: localhost:5000/apicurio/apicurio-registry-kube-sync:latest-snapshot
+          image: quay.io/apicurio/apicurio-registry-kube-sync:latest-snapshot
           imagePullPolicy: Always
           env:
             - name: QUARKUS_LOG_LEVEL
@@ -69,9 +69,6 @@ spec:
             - containerPort: 8080
               protocol: TCP
           env:
-            - name: K_SINK
-              value: http://localhost:8787/events
-
             - name: REGISTRY_LOG_LEVEL
               value: INFO
             - name: LOG_LEVEL
