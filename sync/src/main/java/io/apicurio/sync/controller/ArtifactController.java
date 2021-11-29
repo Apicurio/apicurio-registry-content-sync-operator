@@ -206,11 +206,11 @@ public class ArtifactController implements ResourceController<Artifact> {
         if (spec.getVersion() == null) {
             debugLog(spec, "creating artifact");
             try {
-                //try to create artifact, or fail
+                //try to create artifact
                 ArtifactType type = spec.getType() == null ? null : ArtifactType.fromValue(spec.getType());
                 return ArtifactContext.metadata(OperationOutcome.CREATED, registryClient.createArtifact(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(),
                         type,
-                        IfExists.FAIL,
+                        config.getCreateArtifactBehavior(),
                         false, new ByteArrayInputStream(content)));
             } catch (ArtifactAlreadyExistsException e) {
                 try {

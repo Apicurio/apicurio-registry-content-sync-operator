@@ -16,6 +16,7 @@
 
 package io.apicurio.sync;
 
+import io.apicurio.registry.rest.v2.beans.IfExists;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -46,11 +47,18 @@ public class Configuration {
     @ConfigProperty(name = "apicurio.max.content-length", defaultValue = "5 MiB")
     String maxContentLength;
 
+    @Inject
+    @ConfigProperty(name = "apicurio.registry.create-artifact-behavior", defaultValue = "FAIL")
+    String createArtifactBehaviorString;
+
     public Long maxContentLengthBytes;
+
+    public IfExists createArtifactBehavior;
 
     @PostConstruct
     public void init() {
         maxContentLengthBytes = parseBytes(maxContentLength);
+        createArtifactBehavior = IfExists.fromValue(createArtifactBehaviorString);
     }
 
     public Boolean getDeleteArtifactsEnabled() {
@@ -59,6 +67,10 @@ public class Configuration {
 
     public Long getMaxContentLengthBytes() {
         return maxContentLengthBytes;
+    }
+
+    public IfExists getCreateArtifactBehavior() {
+        return createArtifactBehavior;
     }
 
     private Long parseBytes(String q) {
