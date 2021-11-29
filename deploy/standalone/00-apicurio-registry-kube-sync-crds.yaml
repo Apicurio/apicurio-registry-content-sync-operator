@@ -54,8 +54,8 @@ spec:
             type: object
           status:
             properties:
-              isReady:
-                type: boolean
+              status:
+                type: string
               groupId:
                 type: string
               artifactId:
