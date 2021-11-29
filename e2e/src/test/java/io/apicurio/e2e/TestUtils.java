@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.apicurio.sync;
+package io.apicurio.e2e;
 
 import java.io.BufferedReader;
 import java.io.IOException;

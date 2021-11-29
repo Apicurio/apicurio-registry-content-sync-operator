@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package io.apicurio.sync;
+package io.apicurio.sync.api.labels;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import javax.enterprise.context.ApplicationScoped;
 
 import io.apicurio.registry.events.dto.ArtifactId;
 import io.apicurio.sync.api.Artifact;
@@ -30,7 +28,6 @@ import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 /**
  * @author Fabian Martinez
  */
-@ApplicationScoped
 public class ArtifactLabelsHandler {
 
     private static final String GROUP_ID_LABEL = "apicur.io/groupId";
@@ -43,22 +40,21 @@ public class ArtifactLabelsHandler {
             .orElse(new HashMap<>());
         artifact.getMetadata().setLabels(labels);
 
-        if (artifact.getSpec().getGroupId() != null) {
-            labels.put(GROUP_ID_LABEL, artifact.getSpec().getGroupId());
-        }
+        String groupId = artifact.getSpec().getGroupId()==null ? "default" : artifact.getSpec().getGroupId(); 
+        labels.put(GROUP_ID_LABEL, groupId);
         labels.put(ARTIFACT_ID_LABEL, artifact.getSpec().getArtifactId());
         labels.put(VERSION_LABEL, artifact.getSpec().getVersion());
 
     }
 
-    public LabelSelector getLabelSelector(ArtifactId artifact) {
+    public LabelSelector getLabelSelectorAllVersions(Artifact artifact) {
 
         Map<String,String> labels = new HashMap<>();
-        if (artifact.getGroupId() != null) {
-            labels.put(GROUP_ID_LABEL, artifact.getGroupId());
-        }
-        labels.put(ARTIFACT_ID_LABEL, artifact.getArtifactId());
-        labels.put(VERSION_LABEL, artifact.getVersion());
+        
+        String groupId = artifact.getSpec().getGroupId()==null ? "default" : artifact.getSpec().getGroupId(); 
+        labels.put(GROUP_ID_LABEL, groupId);
+
+        labels.put(ARTIFACT_ID_LABEL, artifact.getSpec().getArtifactId());
 
         return new LabelSelectorBuilder()
                 .addToMatchLabels(labels)

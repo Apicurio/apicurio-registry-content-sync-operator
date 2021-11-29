@@ -24,12 +24,38 @@ jobs:
       - name: Checkout "${{ github.ref }}"
         uses: actions/checkout@v2
 
-      - name: Build
-        run: |
-          mvn package
+      - name: Cache m2 repo
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-      - name: Check deploy manifests
+      - name: Build
+        # runs unit tests, builds container image and builds kubernetes dist
+        run: |
+          mvn package -Pbuild-image --no-transfer-progress -DtrimStackTrace=false
+
+      - name: Setup deploy manifests
+        # checks the kubernetes manifests in deploy folder are the same as the manifests built in dist folder
         run: ./check-deploy-manifests.sh
+
+      - name: Setup Kubernetes
+        run: |
+          sudo curl https://raw.githubusercontent.com/famartinrh/skind/master/skind --output skind
+          sudo chmod +x skind
+          sudo mv skind /usr/local/bin/skind
+          skind start
+          skind status
+
+      # tags and pushes container image to minikube image registry and deploys the operator to setup test env
+      - name: setup e2e tests
+        run: ./e2e/scripts/prepare-env.sh
+
+      # executes e2e tests that expect the kubernetes cluster to be running and with the operator deployed
+      - name: e2e tests
+        run: mvn verify -Pe2e -pl e2e -am --no-transfer-progress -DtrimStackTrace=false
 
       - name: Login to Quay.io Registry
         if: github.event_name == 'push'
@@ -38,4 +64,4 @@ jobs:
       - name: Build and push container image
         if: github.event_name == 'push'
         run: |
-          mvn clean package -pl sync -am -DskipTests --no-transfer-progress -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true
+          docker push quay.io/apicurio/apicurio-registry-kube-sync:latest-snapshot

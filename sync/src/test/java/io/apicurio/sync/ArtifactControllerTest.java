@@ -40,9 +40,6 @@ public class ArtifactControllerTest {
     @Inject
     RegistryClient registryClient;
 
-//    @Inject
-//    ArtifactResourceClient artifactK8sClient;
-
     @Inject
     ArtifactController controller;
 
@@ -54,7 +51,7 @@ public class ArtifactControllerTest {
         var artifactv1 = new ArtifactBuilder()
                 .withNewMetadata()
                     .withNamespace(ApicurioKubeSyncTestProfile.NAMESPACE)
-                    .withName("foo")
+                    .withName("foo-v1")
                     .endMetadata()
                 .withSpec(new ArtifactSpecBuilder()
                         .withArtifactId("person")
@@ -84,7 +81,7 @@ public class ArtifactControllerTest {
         var artifactv2 = new ArtifactBuilder()
                 .withNewMetadata()
                     .withNamespace(ApicurioKubeSyncTestProfile.NAMESPACE)
-                    .withName("foo")
+                    .withName("foo-v2")
                     .endMetadata()
                 .withSpec(new ArtifactSpecBuilder()
                         .withArtifactId("person")

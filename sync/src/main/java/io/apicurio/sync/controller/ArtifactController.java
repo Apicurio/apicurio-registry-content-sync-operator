@@ -12,17 +12,20 @@ import org.slf4j.LoggerFactory;
 import io.apicurio.registry.rest.client.RegistryClient;
 import io.apicurio.registry.rest.client.exception.ArtifactAlreadyExistsException;
 import io.apicurio.registry.rest.client.exception.ArtifactNotFoundException;
+import io.apicurio.registry.rest.client.exception.VersionNotFoundException;
 import io.apicurio.registry.rest.v2.beans.ArtifactMetaData;
 import io.apicurio.registry.rest.v2.beans.EditableMetaData;
 import io.apicurio.registry.rest.v2.beans.IfExists;
 import io.apicurio.registry.rest.v2.beans.UpdateState;
 import io.apicurio.registry.rest.v2.beans.VersionMetaData;
+import io.apicurio.registry.rest.v2.beans.VersionSearchResults;
 import io.apicurio.registry.types.ArtifactState;
 import io.apicurio.registry.types.ArtifactType;
 import io.apicurio.sync.Configuration;
 import io.apicurio.sync.api.Artifact;
 import io.apicurio.sync.api.ArtifactSpec;
 import io.apicurio.sync.api.ArtifactStatus;
+import io.apicurio.sync.api.labels.ArtifactLabelsHandler;
 import io.apicurio.sync.clients.ArtifactResourceClient;
 import io.javaoperatorsdk.operator.api.Context;
 import io.javaoperatorsdk.operator.api.Controller;
@@ -48,18 +51,46 @@ public class ArtifactController implements ResourceController<Artifact> {
     @Inject
     ArtifactResourceClient artifactResourceClient;
 
+    @Inject
+    ArtifactLabelsHandler labelsHandler;
+
     @Override
     public DeleteControl deleteResource(Artifact resource, Context<Artifact> context) {
         if (config.getDeleteArtifactsEnabled()) {
             log.debug("Handling delete {}", resource.getMetadata().getName());
 
-            ArtifactSpec spec = resource.getSpec();
+            if (resource.getMetadata().getDeletionTimestamp() != null) {
+                log.debug("del - Deletion timestamp is not null, this may be a marked for deletion object");
+            }
 
-            var artifactsResources = artifactResourceClient.find(spec.getGroupId(), spec.getArtifactId(), null);
+            ArtifactStatus spec = resource.getStatus();
+
+            var artifactsResources = artifactResourceClient.listVersions(resource);
             if (artifactsResources.getItems().isEmpty()) {
-                registryClient.deleteArtifact(spec.getGroupId(), spec.getArtifactId());
+                log.debug("Going to delete artifact {} {}", spec.getGroupId(), spec.getArtifactId());
+                try {
+                    registryClient.deleteArtifact(spec.getGroupId(), spec.getArtifactId());
+                } catch (ArtifactNotFoundException e) {
+                    //ignored
+                }
             } else {
-                log.debug("Not deleteing, resources {}", artifactsResources.getItems().toString());
+                log.debug("Not deleteing, resources found {}", artifactsResources.getItems().size());
+                try {
+                    UpdateState update = new UpdateState();
+                    update.setState(ArtifactState.DISABLED);
+                    registryClient.updateArtifactVersionState(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(), update);
+                } catch (VersionNotFoundException e) {
+                    //ignored
+                    return DeleteControl.DEFAULT_DELETE;
+                }
+
+                VersionSearchResults versions = registryClient.listArtifactVersions(spec.getGroupId(), spec.getArtifactId(), 0, 100);
+                boolean notAllDisabled = versions.getVersions().stream()
+                    .anyMatch(ver -> ver.getState() != ArtifactState.DISABLED);
+                if (!notAllDisabled) {
+                    log.debug("Going to delete artifact, all versions disabled {} {}", spec.getGroupId(), spec.getArtifactId());
+                    registryClient.deleteArtifact(spec.getGroupId(), spec.getArtifactId());
+                }
             }
 
         }
@@ -68,6 +99,10 @@ public class ArtifactController implements ResourceController<Artifact> {
 
     @Override
     public UpdateControl<Artifact> createOrUpdateResource(Artifact resource, Context<Artifact> context) {
+
+        if (resource.getMetadata().getDeletionTimestamp() != null) {
+            log.debug("Deletion timestamp is not null, this may be a marked for deletion object");
+        }
 
         log.debug("Handling createOrUpdate {}", resource.getMetadata().getName());
 
@@ -106,6 +141,7 @@ public class ArtifactController implements ResourceController<Artifact> {
             spec.setArtifactId(meta.getId());
             spec.setVersion(String.valueOf(meta.getVersion()));
             spec.setType(meta.getType().value());
+            labelsHandler.setLabels(resource);
 
             spec.setGlobalId(meta.getGlobalId());
             spec.setContentId(meta.getContentId());
@@ -133,6 +169,7 @@ public class ArtifactController implements ResourceController<Artifact> {
 
             boolean updateMeta = false;
 
+            debugLog(spec, "Processing spec with name " + spec.getName());
             if (isMetaDiff(spec.getName(), meta.getName())) {
                 updateMeta = true;
             }
@@ -202,7 +239,7 @@ public class ArtifactController implements ResourceController<Artifact> {
         return artifactMeta;
     }
 
-    private ArtifactContext createOrUpdateArtifact(ArtifactSpec spec, byte[] content) {
+    private synchronized ArtifactContext createOrUpdateArtifact(ArtifactSpec spec, byte[] content) {
         if (spec.getVersion() == null) {
             debugLog(spec, "creating artifact");
             try {

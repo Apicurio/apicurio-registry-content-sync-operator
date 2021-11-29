@@ -8,6 +8,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import io.apicurio.registry.rest.client.RegistryClient;
 import io.apicurio.registry.rest.client.RegistryClientFactory;
+import io.apicurio.sync.api.labels.ArtifactLabelsHandler;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
 
@@ -28,6 +29,11 @@ public class RegistryClientProducer {
     @Produces
     public WebClient webClient() {
         return WebClient.create(vertx);
+    }
+
+    @Produces
+    public ArtifactLabelsHandler labelsHandler() {
+        return new ArtifactLabelsHandler();
     }
 
 }

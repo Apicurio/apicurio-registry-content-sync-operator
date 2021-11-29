@@ -91,4 +91,13 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>image-test-push</id>
+            <properties>
+                <quarkus.container-image.registry>localhost:5000</quarkus.container-image.registry>
+            </properties>
+        </profile>
+    </profiles>
+
 </project>

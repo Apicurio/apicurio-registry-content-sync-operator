@@ -16,19 +16,28 @@
 
 package io.apicurio.sync;
 
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.javaoperatorsdk.operator.Operator;
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.QuarkusApplication;
+import io.quarkus.runtime.Startup;
 
 /**
  * @author Fabian Martinez
  */
-public class ApicurioRegistryKubeSyncOperator implements QuarkusApplication {
+@Startup
+@ApplicationScoped
+public class ApicurioRegistryKubeSyncOperator {
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -38,29 +47,29 @@ public class ApicurioRegistryKubeSyncOperator implements QuarkusApplication {
 //    @Inject
 //    Configuration config;
 
-    @Override
-    public int run(String... args) throws Exception {
+    @PostConstruct
+    public void startOperator() {
         log.info("Starting Apicurio Registry Kube Sync");
 
         printConfiguration();
 
         operator.start();
-        Quarkus.waitForExit();
-        return 0;
     }
 
     private void printConfiguration() {
-//        List<String> config = StreamSupport.stream(ConfigProvider.getConfig().getPropertyNames().spliterator(), false)
-//            .sorted()
-//            .collect(Collectors.toList());
-//        config.forEach( e -> {
-//            try {
-//                String value = ConfigProvider.getConfig().getValue(e, String.class);
-//                log.info("{}={}", e, value);
-//            } catch (NoSuchElementException ex) {
-//                // ignore as some property values are not available
-//            }
-//        });
+        List<String> config = StreamSupport.stream(ConfigProvider.getConfig().getPropertyNames().spliterator(), false)
+                .filter(p -> p.toLowerCase().startsWith("apicurio") || p.toLowerCase().startsWith("quarkus"))
+                .sorted()
+                .collect(Collectors.toList());
+        log.info("Application configuration:");
+        config.forEach( e -> {
+            try {
+                String value = ConfigProvider.getConfig().getValue(e, String.class);
+                log.info("{}={}", e, value);
+            } catch (NoSuchElementException ex) {
+                // ignore as some property values are not available
+            }
+        });
         //TODO use Configuration to print operator config values
     }
 
