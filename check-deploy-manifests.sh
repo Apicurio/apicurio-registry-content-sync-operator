@@ -36,6 +36,7 @@ if grep -q localhost:5000 deploy/simple.yaml; then
     exit 1
 fi
 
+rm -rf deploy/check-simple.yaml
 for file in dist/kubernetes/simple/target/kubernetes/manifests/*.yaml; do
     echo "---" | tee -a deploy/check-simple.yaml
     cat $file | tee -a deploy/check-simple.yaml
