@@ -7,11 +7,11 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.native-distroless -t quarkus/kube-sync .
+# docker build -f src/main/docker/Dockerfile.native-distroless -t quarkus/apicurio-registry-kube-sync .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/kube-sync
+# docker run -i --rm -p 8080:8080 quarkus/apicurio-registry-kube-sync
 #
 ###
 FROM quay.io/quarkus/quarkus-distroless-image:1.0
