@@ -28,3 +28,24 @@ else
     echo "Simple manifests are not the expected ones, are not updated"
     exit 1
 fi
+
+# all in one file
+
+if grep -q localhost:5000 deploy/simple.yaml; then
+    echo "Simple manifests are not the expected ones, contains reference to test registry"
+    exit 1
+fi
+
+for file in dist/kubernetes/simple/target/kubernetes/manifests/*.yaml; do
+    echo "---" | tee -a deploy/check-simple.yaml
+    cat $file | tee -a deploy/check-simple.yaml
+done
+
+diff deploy/check-simple.yaml deploy/simple.yaml
+ret=$?
+if [[ $ret -eq 0 ]]; then
+    echo "Simple one-file manifests ok."
+else
+    echo "Simple one-file manifests are not the expected ones, are not updated"
+    exit 1
+fi
