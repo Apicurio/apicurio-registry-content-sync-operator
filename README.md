@@ -1,6 +1,7 @@
 # apicurio-registry-content-sync-operator
 
 A Kubernetes Operator that allows to manage the lifecycle of Artifacts in [Apicurio Registry](https://www.apicur.io/registry/).
+A perfect tool to manage your APIs and Schemas in Apicurio Registry using Git Ops processes.
 
 ```yaml
 apiVersion: artifact.apicur.io/v1alpha1
