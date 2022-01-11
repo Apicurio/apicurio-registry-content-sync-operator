@@ -42,7 +42,7 @@ The manifests in the `simple` folder are an example of a Kubernetes-only deploym
 You can deploy the `simple` installation like this:
 
 ```
-kubectl apply -f deploy/simple
+kubectl apply -f https://raw.githubusercontent.com/Apicurio/apicurio-registry-content-sync-operator/main/deploy/simple.yaml
 ```
 
 The manifests in the `standalone` folder are an example of a deployment of this operator in isolation. With this deployment method it's assumed the registry is already deployed. The target Apicurio Registry instance is configured with the env var `APICURIO_REGISTRY_URL` located in the `03-deployment.yaml` file.

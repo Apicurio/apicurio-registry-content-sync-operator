@@ -77,7 +77,8 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: apicurio-registry-kube-sync---
+  name: apicurio-registry-kube-sync
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -105,7 +106,8 @@ rules:
       - create
       - delete
       - patch
-      - update---
+      - update
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -116,7 +118,8 @@ subjects:
 roleRef:
   kind: Role
   name: apicurio-registry-kube-sync
-  apiGroup: rbac.authorization.k8s.io---
+  apiGroup: rbac.authorization.k8s.io
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
