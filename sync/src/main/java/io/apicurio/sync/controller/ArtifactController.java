@@ -27,15 +27,15 @@ import io.apicurio.sync.api.ArtifactSpec;
 import io.apicurio.sync.api.ArtifactStatus;
 import io.apicurio.sync.api.labels.ArtifactLabelsHandler;
 import io.apicurio.sync.clients.ArtifactResourceClient;
-import io.javaoperatorsdk.operator.api.Context;
-import io.javaoperatorsdk.operator.api.Controller;
-import io.javaoperatorsdk.operator.api.DeleteControl;
-import io.javaoperatorsdk.operator.api.ResourceController;
-import io.javaoperatorsdk.operator.api.UpdateControl;
+import io.javaoperatorsdk.operator.api.reconciler.Context;
+import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
+import io.javaoperatorsdk.operator.api.reconciler.DeleteControl;
+import io.javaoperatorsdk.operator.api.reconciler.Reconciler;
+import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import io.vertx.mutiny.ext.web.client.WebClient;
 
-@Controller
-public class ArtifactController implements ResourceController<Artifact> {
+@ControllerConfiguration
+public class ArtifactController implements Reconciler<Artifact> {
 
     private static final String STATUS_READY = "ready";
 
@@ -57,7 +57,7 @@ public class ArtifactController implements ResourceController<Artifact> {
     ArtifactLabelsHandler labelsHandler;
 
     @Override
-    public DeleteControl deleteResource(Artifact resource, Context<Artifact> context) {
+    public DeleteControl cleanup(Artifact resource, Context context) {
         if (config.getDeleteArtifactsEnabled()) {
             debugLog(resource.getSpec(), "Handling delete " + resource.getMetadata().getName());
 
@@ -68,7 +68,7 @@ public class ArtifactController implements ResourceController<Artifact> {
             ArtifactStatus status = resource.getStatus();
             if (status == null || status.getStatus() == null || !STATUS_READY.equals(status.getStatus())) {
                 log.debug("status is null or is marked as not ready, skipping delete");
-                return DeleteControl.DEFAULT_DELETE;
+                return DeleteControl.defaultDelete();
             }
             ArtifactSpec spec = resource.getSpec();
 
@@ -98,16 +98,16 @@ public class ArtifactController implements ResourceController<Artifact> {
 
                 } catch (VersionNotFoundException | ArtifactNotFoundException e) {
                     //ignored
-                    return DeleteControl.DEFAULT_DELETE;
+                    return DeleteControl.defaultDelete();
                 }
             }
 
         }
-        return DeleteControl.DEFAULT_DELETE;
+        return DeleteControl.defaultDelete();
     }
 
     @Override
-    public UpdateControl<Artifact> createOrUpdateResource(Artifact resource, Context<Artifact> context) {
+    public UpdateControl<Artifact> reconcile(Artifact resource, Context context) {
 
         if (resource.getMetadata().getDeletionTimestamp() != null) {
             log.debug("Deletion timestamp is not null, this may be a marked for deletion object");
@@ -124,13 +124,13 @@ public class ArtifactController implements ResourceController<Artifact> {
             OperationContext<byte[]> ctx = getExternalContent(resource.getSpec().getExternalContent());
             if (ctx.getError() != null) {
                 updateArtifactStatus(resource, ctx.getError());
-                return UpdateControl.updateStatusSubResource(resource);
+                return UpdateControl.updateStatus(resource);
             } else {
                 content = ctx.getData();
             }
         } else {
             updateArtifactStatus(resource, "Content is not provided");
-            return UpdateControl.updateStatusSubResource(resource);
+            return UpdateControl.updateStatus(resource);
         }
 
         ArtifactSpec spec = resource.getSpec();
@@ -141,7 +141,7 @@ public class ArtifactController implements ResourceController<Artifact> {
             ArtifactContext ctx = createOrUpdateArtifact(spec, content);
             if (ctx.getError() != null) {
                 updateArtifactStatus(resource, ctx.getError());
-                return UpdateControl.updateStatusSubResource(resource);
+                return UpdateControl.updateStatus(resource);
             }
 
             ArtifactMetaData meta = ctx.getData();
@@ -219,15 +219,15 @@ public class ArtifactController implements ResourceController<Artifact> {
             updateArtifactStatus(resource, null);
             if (beforeHandleHash == afterHandleHash) {
                 log.debug("Updating only status resource = {}", resource.getMetadata().getName());
-                return UpdateControl.updateStatusSubResource(resource);
+                return UpdateControl.updateStatus(resource);
             } else {
                 log.debug("Updating resource resource = {}", resource.getMetadata().getName());
-                return UpdateControl.updateCustomResourceAndStatus(resource);
+                return UpdateControl.updateResourceAndStatus(resource);
             }
         } catch (Exception e) {
             log.error("Error createOrUpdate artifact", e);
             updateArtifactStatus(resource, e.getMessage());
-            return UpdateControl.updateStatusSubResource(resource);
+            return UpdateControl.updateStatus(resource);
         }
     }
 

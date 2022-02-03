@@ -66,12 +66,12 @@ public class ArtifactControllerTest {
 
         {
 
-            controller.createOrUpdateResource(artifactv1, null);
+            controller.reconcile(artifactv1, null);
 
             assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
             assertEquals(1, registryClient.listArtifactVersions(null, "person", 0, 100).getCount());
 
-            controller.createOrUpdateResource(artifactv1, null);
+            controller.reconcile(artifactv1, null);
             assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
             var versions = registryClient.listArtifactVersions(null, "person", 0, 100);
             assertEquals(1, versions.getCount());
@@ -88,7 +88,7 @@ public class ArtifactControllerTest {
 
             //update metadata
             artifactv1.getSpec().setName("person foo");
-            controller.createOrUpdateResource(artifactv1, null);
+            controller.reconcile(artifactv1, null);
             assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
             assertEquals(1, registryClient.listArtifactVersions(null, "person", 0, 100).getCount());
             var version1updated = registryClient.getArtifactVersionMetaData(null, "person", "1");
@@ -114,13 +114,13 @@ public class ArtifactControllerTest {
 
         {
 
-            controller.createOrUpdateResource(artifactv2, null);
+            controller.reconcile(artifactv2, null);
 
             assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
             var versions = registryClient.listArtifactVersions(null, "person", 0, 100);
             assertEquals(2, versions.getCount());
 
-            controller.createOrUpdateResource(artifactv2, null);
+            controller.reconcile(artifactv2, null);
 
             assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
             versions = registryClient.listArtifactVersions(null, "person", 0, 100);
@@ -128,8 +128,8 @@ public class ArtifactControllerTest {
 
         }
 
-        controller.deleteResource(artifactv1, null);
-        controller.deleteResource(artifactv2, null);
+        controller.cleanup(artifactv1, null);
+        controller.cleanup(artifactv2, null);
         assertEquals(0, registryClient.listArtifactsInGroup(null).getCount().intValue());
 
     }
