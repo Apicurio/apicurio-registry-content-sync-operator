@@ -39,6 +39,9 @@ public class OperatorTest {
 
     Logger logger = LoggerFactory.getLogger(getClass());
 
+    private static String TEST_ARTIFACT_ID =
+            "She-sells-sea-shells-by-the-sea-shore_The-shells-she-sells-are-surely-sea-shells_So-if-she-sells-shells-on-the-sea-shore_She-sells-seashore-shells";
+
     @BeforeEach
     public void prepare() {
         cleanup();
@@ -73,7 +76,7 @@ public class OperatorTest {
                     .withName("foo-v1")
                     .endMetadata()
                 .withSpec(new ArtifactSpecBuilder()
-                        .withArtifactId("person")
+                        .withArtifactId(TEST_ARTIFACT_ID)
                         .withContent(TestUtils.resourceToString("artifactTypes/jsonSchema/person_v1.json"))
                         .withLabels("foo", "baz")
                         .withProperties(Map.of("prop", "test"))
@@ -88,12 +91,12 @@ public class OperatorTest {
             TestUtils.await(() -> registryClient.listArtifactsInGroup(null).getCount().intValue() == 1);
 
             assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
-            var versions = registryClient.listArtifactVersions(null, "person", 0, 100);
+            var versions = registryClient.listArtifactVersions(null, TEST_ARTIFACT_ID, 0, 100);
             assertEquals(1, versions.getCount());
 
             {
-                TestUtils.await(() -> registryClient.getArtifactVersionMetaData(null, "person", "1").getLabels().size() == 2);
-                versions = registryClient.listArtifactVersions(null, "person", 0, 100);
+                TestUtils.await(() -> registryClient.getArtifactVersionMetaData(null, TEST_ARTIFACT_ID, "1").getLabels().size() == 2);
+                versions = registryClient.listArtifactVersions(null, TEST_ARTIFACT_ID, 0, 100);
                 var version1 = versions.getVersions().get(0);
                 assertEquals(2, version1.getLabels().size());
                 assertTrue(version1.getLabels().contains("foo"));
@@ -112,17 +115,17 @@ public class OperatorTest {
 
             try {
                 TestUtils.await(() -> {
-                    VersionMetaData vmetadata = registryClient.getArtifactVersionMetaData(null, "person", "1");
+                    VersionMetaData vmetadata = registryClient.getArtifactVersionMetaData(null, TEST_ARTIFACT_ID, "1");
                     logger.debug("Awaiting for metadata update {}", vmetadata);
                     return "person foo".equals(vmetadata.getName());
                 });
             } finally {
-                logger.warn("Versions of artifact {}", registryClient.listArtifactVersions(null, "person", 0, 100).getCount());
+                logger.warn("Versions of artifact {}", registryClient.listArtifactVersions(null, TEST_ARTIFACT_ID, 0, 100).getCount());
             }
 
             assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
-            assertEquals(1, registryClient.listArtifactVersions(null, "person", 0, 100).getCount());
-            var version1updated = registryClient.getArtifactVersionMetaData(null, "person", "1");
+            assertEquals(1, registryClient.listArtifactVersions(null, TEST_ARTIFACT_ID, 0, 100).getCount());
+            var version1updated = registryClient.getArtifactVersionMetaData(null, TEST_ARTIFACT_ID, "1");
             assertEquals("person foo", version1updated.getName());
             assertEquals(2, version1updated.getLabels().size());
             assertTrue(version1updated.getLabels().contains("foo"));
@@ -138,7 +141,7 @@ public class OperatorTest {
                     .withName("foo-v2")
                     .endMetadata()
                 .withSpec(new ArtifactSpecBuilder()
-                        .withArtifactId("person")
+                        .withArtifactId(TEST_ARTIFACT_ID)
                         .withContent(TestUtils.resourceToString("artifactTypes/jsonSchema/person_v2.json"))
                         .build())
                 .build();
@@ -147,10 +150,10 @@ public class OperatorTest {
 
             artifactClient.create(artifactv2);
 
-            TestUtils.await(() -> registryClient.listArtifactVersions(null, "person", 0, 100).getCount() == 2);
+            TestUtils.await(() -> registryClient.listArtifactVersions(null, TEST_ARTIFACT_ID, 0, 100).getCount() == 2);
 
             assertEquals(1, registryClient.listArtifactsInGroup(null).getCount().intValue());
-            var versions = registryClient.listArtifactVersions(null, "person", 0, 100);
+            var versions = registryClient.listArtifactVersions(null, TEST_ARTIFACT_ID, 0, 100);
             assertEquals(2, versions.getCount());
 
         }

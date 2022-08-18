@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 IMAGE=quay.io/apicurio/apicurio-registry-kube-sync:latest-snapshot
 TEST_IMAGE=localhost:5000/apicurio/apicurio-registry-kube-sync:latest-snapshot

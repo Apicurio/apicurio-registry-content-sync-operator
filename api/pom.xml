@@ -31,6 +31,10 @@
             <groupId>io.sundr</groupId>
             <artifactId>builder-annotations</artifactId>
         </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
 
     </dependencies>
 

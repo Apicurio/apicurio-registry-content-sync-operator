@@ -20,10 +20,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import io.apicurio.registry.events.dto.ArtifactId;
 import io.apicurio.sync.api.Artifact;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
+import io.fabric8.kubernetes.client.utils.KubernetesResourceUtil;
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * @author Fabian Martinez
@@ -32,7 +33,16 @@ public class ArtifactLabelsHandler {
 
     private static final String GROUP_ID_LABEL = "apicur.io/groupId";
     private static final String ARTIFACT_ID_LABEL = "apicur.io/artifactId";
+    private static final String ARTIFACT_ID_HASH_LABEL = "apicur.io/artifactIdHash";
     private static final String VERSION_LABEL = "apicur.io/version";
+
+    private boolean isValidLabel(String in) {
+        return KubernetesResourceUtil.isValidName(in);
+    }
+
+    private String getIdHash(String in) {
+        return DigestUtils.md5Hex(in);
+    }
 
     public void setLabels(Artifact artifact) {
 
@@ -42,7 +52,11 @@ public class ArtifactLabelsHandler {
 
         String groupId = artifact.getSpec().getGroupId()==null ? "default" : artifact.getSpec().getGroupId(); 
         labels.put(GROUP_ID_LABEL, groupId);
-        labels.put(ARTIFACT_ID_LABEL, artifact.getSpec().getArtifactId());
+        if (isValidLabel(artifact.getSpec().getArtifactId())) {
+            labels.put(ARTIFACT_ID_LABEL, artifact.getSpec().getArtifactId());
+        } else {
+            labels.put(ARTIFACT_ID_HASH_LABEL, getIdHash(artifact.getSpec().getArtifactId()));
+        }
         labels.put(VERSION_LABEL, artifact.getSpec().getVersion());
 
     }
@@ -54,7 +68,11 @@ public class ArtifactLabelsHandler {
         String groupId = artifact.getSpec().getGroupId()==null ? "default" : artifact.getSpec().getGroupId(); 
         labels.put(GROUP_ID_LABEL, groupId);
 
-        labels.put(ARTIFACT_ID_LABEL, artifact.getSpec().getArtifactId());
+        if (isValidLabel(artifact.getSpec().getArtifactId())) {
+            labels.put(ARTIFACT_ID_LABEL, artifact.getSpec().getArtifactId());
+        } else {
+            labels.put(ARTIFACT_ID_HASH_LABEL, getIdHash(artifact.getSpec().getArtifactId()));
+        }
 
         return new LabelSelectorBuilder()
                 .addToMatchLabels(labels)
