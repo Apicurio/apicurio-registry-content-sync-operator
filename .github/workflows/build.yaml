@@ -11,7 +11,7 @@ jobs:
 
   build-test:
     name: Build and Test
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     if: github.repository_owner == 'Apicurio'
     steps:
 
@@ -43,7 +43,7 @@ jobs:
 
       - name: Setup Kubernetes
         run: |
-          sudo curl https://raw.githubusercontent.com/famartinrh/skind/master/skind --output skind
+          sudo curl https://raw.githubusercontent.com/andreaTP/skind/main/skind --output skind
           sudo chmod +x skind
           sudo mv skind /usr/local/bin/skind
           skind start
