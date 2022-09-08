@@ -34,7 +34,7 @@
 
         <log4j2.version>2.13.3</log4j2.version>
         <lombok.version>1.18.22</lombok.version>
-        <sundrio.version>0.80.0</sundrio.version>
+        <sundrio.version>0.93.0</sundrio.version>
 
         <kube-sync.container.image>${quarkus.container-image.registry}/${quarkus.container-image.group}/${quarkus.container-image.name}:${quarkus.container-image.tag}</kube-sync.container.image>
 
