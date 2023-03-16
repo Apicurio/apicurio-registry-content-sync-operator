@@ -83,6 +83,12 @@
             </dependency>
 
             <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-vault</artifactId>
+                <version>${quarkus.platform.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>

@@ -12,6 +12,13 @@ import io.apicurio.sync.api.labels.ArtifactLabelsHandler;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
 
+import java.util.Collections;
+
+import io.apicurio.rest.client.JdkHttpClient;
+import io.apicurio.rest.client.auth.Auth;
+import io.apicurio.rest.client.auth.OidcAuth;
+import io.apicurio.rest.client.auth.exception.AuthErrorHandler;
+
 @ApplicationScoped
 public class RegistryClientProducer {
 
@@ -23,7 +30,15 @@ public class RegistryClientProducer {
 
     @Produces
     public RegistryClient registryClient() {
-        return RegistryClientFactory.create(registryUrl);
+        final String tokenEndpoint = System.getenv("AUTH_TOKEN_ENDPOINT");
+        if (tokenEndpoint != null) {
+            final String authClient = System.getenv("AUTH_CLIENT_ID");
+            final String authSecret = System.getenv("AUTH_CLIENT_SECRET");
+            Auth auth = new OidcAuth(new JdkHttpClient(tokenEndpoint, Collections.emptyMap(), null, new AuthErrorHandler()), authClient, authSecret);
+            return RegistryClientFactory.create(new JdkHttpClient(registryUrl, Collections.emptyMap(), auth, new AuthErrorHandler()));
+        } else {
+            return RegistryClientFactory.create(registryUrl);
+        }
     }
 
     @Produces
