@@ -149,7 +149,7 @@ public class ArtifactController implements Reconciler<Artifact> {
             spec.setGroupId(meta.getGroupId());
             spec.setArtifactId(meta.getId());
             spec.setVersion(String.valueOf(meta.getVersion()));
-            spec.setType(meta.getType().value());
+            spec.setType(meta.getType());
             labelsHandler.setLabels(resource);
 
             spec.setGlobalId(meta.getGlobalId());
@@ -252,9 +252,8 @@ public class ArtifactController implements Reconciler<Artifact> {
             debugLog(spec, "creating artifact");
             try {
                 //try to create artifact, or fail
-                ArtifactType type = spec.getType() == null ? null : ArtifactType.fromValue(spec.getType());
                 return ArtifactContext.metadata(OperationOutcome.CREATED, registryClient.createArtifact(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(),
-                        type,
+                        spec.getType(),
                         IfExists.FAIL,
                         false, new ByteArrayInputStream(content)));
             } catch (ArtifactAlreadyExistsException e) {
@@ -300,7 +299,7 @@ public class ArtifactController implements Reconciler<Artifact> {
                     //artifact does not exists at all
                     debugLog(spec, "creating artifact specific version {}");
                     return ArtifactContext.metadata(OperationOutcome.CREATED, registryClient.createArtifact(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(),
-                            ArtifactType.fromValue(spec.getType()),
+                            spec.getType(),
                             IfExists.RETURN,
                             false, new ByteArrayInputStream(content)));
                 }
