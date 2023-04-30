@@ -151,7 +151,7 @@
         }
       },
       "Pets": {
-        "type": "array",
+        "type": "object",
         "items": {
           "$ref": "#/components/schemas/Pet"
         }
