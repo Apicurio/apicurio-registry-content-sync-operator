@@ -110,7 +110,13 @@ jobs:
 
       # Create a GH release.
       - name: Create GitHub Release
-        run: ./.github/scripts/create-github-release.sh ${{ github.event.inputs.release-version}} ${{ github.event.inputs.branch}} $GITHUB_REPOSITORY ${{ secrets.ACCESS_TOKEN }}
+        uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
+        with:
+          name: ${{ github.event.inputs.release-version }}
+          tag_name: ${{ github.event.inputs.release-version }}
+          token: ${{ secrets.ACCESS_TOKEN }}
+          target_commitish: ${{ github.event.inputs.branch }}
+          prerelease: false
 
       # Log in to quay so we can push images
       - name: Login to Quay.io Registry
