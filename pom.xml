@@ -23,7 +23,7 @@
         <jandex-plugin.version>1.2.2</jandex-plugin.version>
         <junit.platform.version>1.7.0</junit.platform.version>
         <version.copy-rename.plugin>1.0.1</version.copy-rename.plugin>
-        <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
+        <properties-maven-plugin.version>1.2.0</properties-maven-plugin.version>
 
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>quarkus-universe-bom</quarkus.platform.artifact-id>
