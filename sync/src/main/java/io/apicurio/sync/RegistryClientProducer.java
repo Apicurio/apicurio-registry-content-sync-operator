@@ -4,6 +4,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
+import io.apicurio.registry.rest.client.impl.ErrorHandler;
+import io.apicurio.rest.client.JdkHttpClient;
+import io.apicurio.rest.client.auth.Auth;
+import io.apicurio.rest.client.auth.OidcAuth;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import io.apicurio.registry.rest.client.RegistryClient;
@@ -11,6 +15,8 @@ import io.apicurio.registry.rest.client.RegistryClientFactory;
 import io.apicurio.sync.api.labels.ArtifactLabelsHandler;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
+
+import java.util.Collections;
 
 @ApplicationScoped
 public class RegistryClientProducer {
@@ -23,7 +29,15 @@ public class RegistryClientProducer {
 
     @Produces
     public RegistryClient registryClient() {
-        return RegistryClientFactory.create(registryUrl);
+        final String tokenEndpoint = System.getenv("AUTH_TOKEN_ENDPOINT");
+        if (tokenEndpoint != null) {
+            final String authClient = System.getenv("AUTH_CLIENT_ID");
+            final String authSecret = System.getenv("AUTH_CLIENT_SECRET");
+            Auth auth = new OidcAuth(new JdkHttpClient(tokenEndpoint, Collections.emptyMap(), null, new ErrorHandler()), authClient, authSecret);
+            return RegistryClientFactory.create(new JdkHttpClient(registryUrl, Collections.emptyMap(), auth, new ErrorHandler()));
+        } else {
+            return RegistryClientFactory.create(registryUrl);
+        }
     }
 
     @Produces
