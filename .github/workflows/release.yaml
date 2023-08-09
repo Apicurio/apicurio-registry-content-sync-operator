@@ -46,6 +46,13 @@ jobs:
       - name: Check Maven Version
         run: mvn --version
 
+      # Import GPG key so we can do a GH release
+      - name: Import GPG Key
+        uses: crazy-max/ghaction-import-gpg@v5
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
       # Checkout the code
       - name: Code Checkout
         run: |
@@ -100,13 +107,6 @@ jobs:
           git add .
           git commit -m "Automated version update: ${{ github.event.inputs.release-version}}"
           git push
-
-      # Import GPG key so we can do a GH release
-      - name: Import GPG Key
-        uses: crazy-max/ghaction-import-gpg@v5
-        env:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
       # Create a GH release.
       - name: Create GitHub Release
