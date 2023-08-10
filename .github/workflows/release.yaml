@@ -126,8 +126,9 @@ jobs:
       - name: Tag and push container image
         run: |
           COMMIT_HASH="$(git log --pretty=format:'%h' -n 1)"
-          docker tag quay.io/apicurio/apicurio-registry-kube-sync:latest-release quay.io/apicurio/apicurio-registry-kube-sync:$COMMIT_HASH
-          docker tag quay.io/apicurio/apicurio-registry-kube-sync:${{ github.event.inputs.release-version }} quay.io/apicurio/apicurio-registry-kube-sync:$COMMIT_HASH
+          docker tag quay.io/apicurio/apicurio-registry-kube-sync:latest-snapshot quay.io/apicurio/apicurio-registry-kube-sync:latest-release
+          docker tag quay.io/apicurio/apicurio-registry-kube-sync:latest-snapshot quay.io/apicurio/apicurio-registry-kube-sync:${{ github.event.inputs.release-version }}
+          docker tag quay.io/apicurio/apicurio-registry-kube-sync:latest-snapshot quay.io/apicurio/apicurio-registry-kube-sync:$COMMIT_HASH
           docker push quay.io/apicurio/apicurio-registry-kube-sync:$COMMIT_HASH
           docker push quay.io/apicurio/apicurio-registry-kube-sync:latest-release
           docker push quay.io/apicurio/apicurio-registry-kube-sync:${{ github.event.inputs.release-version }}
