@@ -28,7 +28,7 @@
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>quarkus-universe-bom</quarkus.platform.artifact-id>
         <quarkus.platform.version>2.4.2.Final</quarkus.platform.version>
-        <quarkus-plugin.version>${quarkus.platform.version}</quarkus-plugin.version>
+        <quarkus-plugin.version>3.7.1</quarkus-plugin.version>
 
         <quarkus.operator.extension>2.0.3</quarkus.operator.extension>
 
