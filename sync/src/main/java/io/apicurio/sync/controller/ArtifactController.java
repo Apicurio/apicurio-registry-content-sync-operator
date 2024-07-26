@@ -305,13 +305,6 @@ public class ArtifactController implements ResourceController<Artifact> {
         }
     }
 
-    private List<ArtifactReference> toRegistryReferences(
-            List<io.apicurio.sync.api.ArtifactReference> references) {
-        return references.stream()
-                .map(a -> ArtifactReference.builder().artifactId(a.getArtifactId()).groupId(a.getGroupId())
-                        .name(a.getName()).version(a.getVersion()).build()).collect(Collectors.toList());
-    }
-
     private ArtifactMetaData createArtifact(ArtifactSpec spec, byte[] content, IfExists ifExists) {
         List<ArtifactReference> references = toRegistryReferences(spec.getReferences());
         return registryClient.createArtifact(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(),
@@ -373,6 +366,18 @@ public class ArtifactController implements ResourceController<Artifact> {
         meta.setState(vmeta.getState());
 
         return meta;
+    }
+
+    private List<ArtifactReference> toRegistryReferences(
+            List<io.apicurio.sync.api.ArtifactReference> references) {
+        return references.stream()
+                .map(reference -> ArtifactReference.builder()
+                        .artifactId(reference.getArtifactId())
+                        .groupId(reference.getGroupId())
+                        .name(reference.getName())
+                        .version(reference.getVersion())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private OperationContext<byte[]> getExternalContent(String url) {
