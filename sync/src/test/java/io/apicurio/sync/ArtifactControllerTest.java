@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import io.apicurio.registry.rest.client.RegistryClient;
 import io.apicurio.sync.api.ArtifactBuilder;
+import io.apicurio.sync.api.ArtifactReferenceBuilder;
 import io.apicurio.sync.api.ArtifactSpecBuilder;
 import io.apicurio.sync.controller.ArtifactController;
 import io.quarkus.test.junit.QuarkusTest;
@@ -128,10 +129,87 @@ public class ArtifactControllerTest {
 
         }
 
+
         controller.deleteResource(artifactv1, null);
         controller.deleteResource(artifactv2, null);
         assertEquals(0, registryClient.listArtifactsInGroup(null).getCount().intValue());
 
     }
 
+    @Test
+    public void testAddingReferences() {
+        var groupId = "references";
+        var phoneNumberId = "phone-number";
+        var personId = "person";
+        assertEquals(0, registryClient.listArtifactsInGroup(groupId).getCount().intValue());
+
+        var phoneNumberProtoArtifact = new ArtifactBuilder()
+                .withNewMetadata()
+                .withNamespace(ApicurioKubeSyncTestProfile.NAMESPACE)
+                .withName(phoneNumberId)
+                .endMetadata()
+                .withSpec(new ArtifactSpecBuilder()
+                        .withGroupId(groupId)
+                        .withArtifactId(phoneNumberId)
+                        .withContent(TestUtils.resourceToString("artifactTypes/protobuf/phone_number.proto"))
+                        .build())
+                .build();
+
+        controller.createOrUpdateResource(phoneNumberProtoArtifact, null);
+
+        assertEquals(1, registryClient.listArtifactsInGroup(groupId).getCount().intValue());
+        assertEquals(1, registryClient.listArtifactVersions(groupId, phoneNumberId, 0, 100).getCount());
+
+        var personProtoArtifact = new ArtifactBuilder()
+                .withNewMetadata()
+                .withNamespace(ApicurioKubeSyncTestProfile.NAMESPACE)
+                .withName(personId)
+                .endMetadata()
+                .withSpec(new ArtifactSpecBuilder()
+                        .withGroupId(groupId)
+                        .withArtifactId(personId)
+                        .withContent(TestUtils.resourceToString("artifactTypes/protobuf/person_v1.proto"))
+                        .withReferences(new ArtifactReferenceBuilder()
+                                .withName(phoneNumberId)
+                                .withArtifactId(phoneNumberId)
+                                .withGroupId(groupId)
+                                .withVersion(phoneNumberProtoArtifact.getSpec().getVersion())
+                                .build())
+                        .build())
+                .build();
+
+        controller.createOrUpdateResource(personProtoArtifact, null);
+
+        assertEquals(2, registryClient.listArtifactsInGroup(groupId).getCount().intValue());
+        assertEquals(1, registryClient.listArtifactVersions(groupId, personId, 0, 100).getCount());
+
+        personProtoArtifact = new ArtifactBuilder()
+                .withNewMetadata()
+                .withNamespace(ApicurioKubeSyncTestProfile.NAMESPACE)
+                .withName(personId)
+                .endMetadata()
+                .withSpec(new ArtifactSpecBuilder()
+                        .withGroupId(groupId)
+                        .withArtifactId(personId)
+                        .withContent(TestUtils.resourceToString("artifactTypes/protobuf/person_v2.proto"))
+                        .withReferences(new ArtifactReferenceBuilder()
+                                .withName(phoneNumberId)
+                                .withArtifactId(phoneNumberId)
+                                .withGroupId(groupId)
+                                .withVersion(phoneNumberProtoArtifact.getSpec().getVersion())
+                                .build())
+                        .build())
+                .build();
+
+        controller.createOrUpdateResource(personProtoArtifact, null);
+
+        assertEquals(2, registryClient.listArtifactsInGroup(groupId).getCount().intValue());
+        assertEquals(2, registryClient.listArtifactVersions(groupId, personId, 0, 100).getCount());
+
+        controller.deleteResource(phoneNumberProtoArtifact, null);
+        controller.deleteResource(personProtoArtifact, null);
+
+        assertEquals(0, registryClient.listArtifactsInGroup(null).getCount().intValue());
+
+    }
 }

@@ -48,6 +48,7 @@ public class ArtifactSpec {
 
     private String content;
     private String externalContent;
+    private List<ArtifactReference> references = new ArrayList<>();
 
     public String getGroupId() {
         return groupId;
@@ -126,6 +127,12 @@ public class ArtifactSpec {
     }
     public void setExternalContent(String externalContent) {
         this.externalContent = externalContent;
+    }
+    public List<ArtifactReference> getReferences() {
+       return references;
+    }
+    public void setReferences(List<ArtifactReference> references) {
+        this.references = references;
     }
     public String getModifiedBy() {
         return modifiedBy;
