@@ -1,6 +1,6 @@
 # apicurio-registry-content-sync-operator
 
-This repository is no longer maintained by the Apicurio Registry core maintainers. 
+## This repository is no longer maintained by the Apicurio Registry core maintainers. 
 
 There is a number of reasons for not following this approach, some of them being that this is a "broken by design" approach as the current Apicurio Registry API is not built to be idempotent and used in such a way:
 
