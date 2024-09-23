@@ -1,5 +1,15 @@
 # apicurio-registry-content-sync-operator
 
+This repository is no longer maintained by the Apicurio Registry core maintainers. 
+
+There is a number of reasons for not following this approach, some of them being that this is a "broken by design" approach as the current Apicurio Registry API is not built to be idempotent and used in such a way:
+
+Reconciliation is going to fail under some (common) conditions like concurrent updates of artifacts
+Detecting failures in reconciliation requires extra monitoring and external tools causing Registry to misbehave instead of failing
+Manually fixing a failure in reconciliation always requires human intervention
+The amount of data that can be stored is limited (by default ETCD limit is, per object, 1.5MB)
+
+
 A Kubernetes Operator that allows to manage the lifecycle of Artifacts in [Apicurio Registry](https://www.apicur.io/registry/).
 A perfect tool to manage your APIs and Schemas in Apicurio Registry using Git Ops processes.
 
