@@ -2,7 +2,9 @@ package io.apicurio.sync.controller;
 
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -13,14 +15,15 @@ import io.apicurio.registry.rest.client.RegistryClient;
 import io.apicurio.registry.rest.client.exception.ArtifactAlreadyExistsException;
 import io.apicurio.registry.rest.client.exception.ArtifactNotFoundException;
 import io.apicurio.registry.rest.client.exception.VersionNotFoundException;
+import io.apicurio.registry.rest.v2.beans.ArtifactContent;
 import io.apicurio.registry.rest.v2.beans.ArtifactMetaData;
+import io.apicurio.registry.rest.v2.beans.ArtifactReference;
 import io.apicurio.registry.rest.v2.beans.EditableMetaData;
 import io.apicurio.registry.rest.v2.beans.IfExists;
 import io.apicurio.registry.rest.v2.beans.UpdateState;
 import io.apicurio.registry.rest.v2.beans.VersionMetaData;
 import io.apicurio.registry.rest.v2.beans.VersionSearchResults;
 import io.apicurio.registry.types.ArtifactState;
-import io.apicurio.registry.types.ArtifactType;
 import io.apicurio.sync.Configuration;
 import io.apicurio.sync.api.Artifact;
 import io.apicurio.sync.api.ArtifactSpec;
@@ -252,27 +255,25 @@ public class ArtifactController implements ResourceController<Artifact> {
             debugLog(spec, "creating artifact");
             try {
                 //try to create artifact, or fail
-                return ArtifactContext.metadata(OperationOutcome.CREATED, registryClient.createArtifact(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(),
-                        spec.getType(),
-                        IfExists.FAIL,
-                        false, new ByteArrayInputStream(content)));
+                return ArtifactContext.metadata(OperationOutcome.CREATED,
+                        createArtifact(spec, content, IfExists.FAIL));
             } catch (ArtifactAlreadyExistsException e) {
                 try {
                     //check what version is this exactly
-                    VersionMetaData vmeta = registryClient.getArtifactVersionMetaDataByContent(spec.getGroupId(), spec.getArtifactId(), false, new ByteArrayInputStream(content));
+                    VersionMetaData vmeta = getArtifactVersionMetaDataByContent(spec, content);
                     debugLog(spec, "artifact version already exists, doing nothing");
                     return ArtifactContext.metadata(OperationOutcome.ALREADY_EXISTS, toMeta(vmeta));
                 } catch (ArtifactNotFoundException nfe) {
                     //artifact exists create new version
                     debugLog(spec, "artifact exists, creating new version");
-                    ArtifactMetaData meta = registryClient.updateArtifact(spec.getGroupId(), spec.getArtifactId(), new ByteArrayInputStream(content));
+                    ArtifactMetaData meta = updateArtifact(spec, content);
                     return ArtifactContext.metadata(OperationOutcome.UPDATED, meta);
                     //TODO catch possible exception?
                 }
             }
         } else {
             try {
-                VersionMetaData vmeta = registryClient.getArtifactVersionMetaDataByContent(spec.getGroupId(), spec.getArtifactId(), false, new ByteArrayInputStream(content));
+                VersionMetaData vmeta = getArtifactVersionMetaDataByContent(spec, content);
                 if (vmeta.getVersion().equals(spec.getVersion())) {
                     debugLog(spec, "version already exists, doing nothing");
                     return ArtifactContext.metadata(OperationOutcome.ALREADY_EXISTS, toMeta(vmeta));
@@ -293,19 +294,37 @@ public class ArtifactController implements ResourceController<Artifact> {
                     registryClient.getArtifactMetaData(spec.getGroupId(), spec.getArtifactId());
                     //artifact exists create new version
                     debugLog(spec, "creating new version");
-                    VersionMetaData vmeta = registryClient.createArtifactVersion(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(), new ByteArrayInputStream(content));
-                    return ArtifactContext.metadata(OperationOutcome.UPDATED, toMeta(vmeta));
+                    return ArtifactContext.metadata(OperationOutcome.UPDATED, updateArtifact(spec, content));
                 } catch (ArtifactNotFoundException e1) {
                     //artifact does not exists at all
                     debugLog(spec, "creating artifact specific version {}");
-                    return ArtifactContext.metadata(OperationOutcome.CREATED, registryClient.createArtifact(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(),
-                            spec.getType(),
-                            IfExists.RETURN,
-                            false, new ByteArrayInputStream(content)));
+                    return ArtifactContext.metadata(OperationOutcome.CREATED,
+                            createArtifact(spec, content, IfExists.RETURN));
                 }
             }
         }
     }
+
+    private ArtifactMetaData createArtifact(ArtifactSpec spec, byte[] content, IfExists ifExists) {
+        List<ArtifactReference> references = toRegistryReferences(spec.getReferences());
+        return registryClient.createArtifact(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(),
+                spec.getType(), ifExists, false, spec.getName(), spec.getDescription(), null, null, null,
+                new ByteArrayInputStream(content), references);
+    }
+
+    private ArtifactMetaData updateArtifact(ArtifactSpec spec, byte[] content) {
+        List<ArtifactReference> references = toRegistryReferences(spec.getReferences());
+        return registryClient.updateArtifact(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(), null,
+                null, new ByteArrayInputStream(content), references);
+    }
+
+    private VersionMetaData getArtifactVersionMetaDataByContent(ArtifactSpec spec, byte[] content) {
+        List<ArtifactReference> references = toRegistryReferences(spec.getReferences());
+
+        return registryClient.getArtifactVersionMetaDataByContent(spec.getGroupId(), spec.getArtifactId(),
+                false, ArtifactContent.builder().content(new String(content)).references(references).build());
+    }
+
 
     private ArtifactStatus getStatus(Artifact artifact) {
         ArtifactStatus status = Optional.ofNullable(artifact.getStatus())
@@ -347,6 +366,18 @@ public class ArtifactController implements ResourceController<Artifact> {
         meta.setState(vmeta.getState());
 
         return meta;
+    }
+
+    private List<ArtifactReference> toRegistryReferences(
+            List<io.apicurio.sync.api.ArtifactReference> references) {
+        return references.stream()
+                .map(reference -> ArtifactReference.builder()
+                        .artifactId(reference.getArtifactId())
+                        .groupId(reference.getGroupId())
+                        .name(reference.getName())
+                        .version(reference.getVersion())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private OperationContext<byte[]> getExternalContent(String url) {

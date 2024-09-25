@@ -29,6 +29,19 @@ spec:
                 type: string
               state:
                 type: string
+              references:
+                items:
+                  properties:
+                    groupId:
+                      type: string
+                    artifactId:
+                      type: string
+                    version:
+                      type: string
+                    name:
+                      type: string
+                  type: object
+                type: array
               content:
                 type: string
               groupId:
